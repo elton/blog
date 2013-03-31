@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Staircar：Tumblr的Redis集群控制层</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Staircar：Tumblr的Redis集群控制层 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p><img class="alignnone" title="Tumblr" src="http://media.tumblr.com/tumblr_lol77xDgkf1qz6daf.png" alt="" width="500" height="277" /></p>
+
+<p>Tumblr是世界上最流行的轻博客服务，其用户量在最近的一次统计中已经达到2090万，超过了全球最大的博客服务WordPress。而我们今天要介绍的是Tumblr通知系统的架构，其通知系统由一个叫Staircar的轻量级HTTP服务器和其下层的大规模Redis集群组成。</p>
+
+<p><strong>应用分析</strong></p>
+
+<p>在Tumblr初期，其通知系统是由MySQL＋Memcached的传统架构组成，但是由于通知系统庞大的添加操作，导致MySQL负担非常大，经常搞得InnoDB global transaction max（1024）都超出了。于是他们打算重新构建消息系统。首先他们分析了消息系统的应用特点：
+<ul>
+    <li>按时间排序</li>
+    <li>唯一性，每一条消息都是唯一的</li>
+    <li>读写比大概是 60%/30%</li>
+    <li>每个用户的消息条数一定</li>
+    <li>数据按用户划分，每个用户只能读自己的消息</li>
+</ul>
+<strong>架构</strong></p>
+
+<p>基于上面应用特点的考虑，Tumblr选择了Redis的sorted sets作为其数据存储。</p>
+
+<p>他们的存储方式是：
+<ul>
+    <li>给每个用户分配一个sorted sets，其中每一项保存一条通知</li>
+    <li>每条通知以时间戳为score在sorted sets中进行排序</li>
+    <li>超出100条通知后进行trim操作</li>
+</ul>
+Tumblr的数据量：2300万个BLOG，每个BLOG 100条消息，每条消息体大概160bytes。</p>
+
+<p>响应速度：大概每秒提供7,500次请求，每次请求的响应时间小于5ms。</p>
+
+<p>考虑到容灾性及可能快速增长的数据量，Tumblr打算采用preshard的方式来架构他们的Redis集群，于是他们开发了Staircar（一个提供HTTP服务的Redis集群调度管理组件）。下面是他们的通知系统架构图：</p>
+
+<p><img class="alignnone" title="架构" src="http://blog.nosqlfan.com/wp-content/uploads/2011/07/tumblr_lollyoX2RT1qz6daf.png" alt="" width="490" height="247" /></p>
+
+<p>实际上在开发Staircar前，他们考查了一些其它的类似功能的产品，但都不能满足他们所有需求（或者说闲杂功能过多）。</p>
+
+<p><strong>性能</strong></p>
+
+<p>Staircar由C语言写成，以libevent为网络驱动层，提供JSON格式的RESTFul接口，其性能超出了Tumblr工程师们的想象，其在最高峰时的响应时间也在5ms以下，其性能测试结果是大概能处理每秒30,000次左右的请求。下面是其性能测试图，从图上可以看到，其绝大部分请求（红色区域）的响应时间在3－4ms之间：</p>
+
+<p><img class="alignnone" title="性能" src="http://blog.nosqlfan.com/wp-content/uploads/2011/07/staircarbench.jpeg" alt="" width="500" height="510" /></p>
+
+<p>来源：engineering.tumblr.com</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/739" title="USING INDUCTION TO DESIGN 使用归纳法设计算法【全文翻译】">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/741" title="ubuntu 11.04安装gcc 4.6.1">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2011-07-27</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#NoSQL-ref">NoSQL <span>3</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#NoSQL-ref">NoSQL <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Redis-ref">Redis <span>4</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

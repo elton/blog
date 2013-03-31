@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>网站密码存储方案比较</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>网站密码存储方案比较 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>为了对用户负责，用户密码采用不可逆算法的时候，我们就要考虑一下如何对用户密码进行加密。那么仅仅是使用不可逆算法就行了吗？还不是，在硬件飞速发展的今天，尤其是GPU运算能力超CPU 10-20倍甚至更多，使得暴力破解的时间大大缩短。那么为了使得暴力破解变得几乎不可能，我们就要使用一些不支持GPU加速破解的算法。这里所说的算法，实际上也是各种加密的hash方式。</p>
+
+<p>目前常见的<strong>不可逆加密算法</strong>有以下几种：
+<ul>
+    <li>一次MD5（使用率很高）</li>
+    <li>将密码与一个随机串进行一次MD5</li>
+    <li>两次MD5，使用一个随机字符串与密码的md5值再进行一次md5，使用很广泛</li>
+    <li><a href="http://en.wikipedia.org/wiki/PBKDF2" target="_blank">PBKDF2</a>算法</li>
+    <li><a href="http://en.wikipedia.org/wiki/Bcrypt" target="_blank">bcrypt</a></li>
+    <li>其它加密算法</li>
+</ul>
+现在，通常推荐使用 bcrypt 或 PBKDF2 这两种算法来对密码进行加密。下面对以上几种加密算法进行一下简单的分析。
+第一种就不解释了，我们看下第二种加密算法（php代码）$salt是一个随机字符串，每个用户都不一样，并且要存储下来用于验证
+<pre class="prettyprint linenums">md5($password.$salt)</pre>
+第三种算法（php代码）
+<pre class="prettyprint linenums">md5(md5($password).$salt)</pre>
+第一种和第二种都是一次md5，尤其是第一种，假设原始字符串很短，当然，我们的密码通常都不会很长，所以暴力破解还是不会耗时太久的。尤其是采用GPU运算。
+下面这个网址中，作者针对cpu、gup和各种单一的加密算法破解进行了一些描述，有兴趣的可以看看：
+<a href="http://www.codinghorror.com/blog/2012/04/speed-hashing.html" target="_blank">http://www.codinghorror.com/blog/<sup>2012</sup>&frasl;<sub>04</sub>/speed-hashing.html</a></p>
+
+<p>下面的网址还介绍了我国山东大学的王晓云和余洪波关于md5碰撞的文章，可以生成两个一样的md5值的文件。http://www.mscs.dal.ca/~selinger/md5collision/</p>
+
+<p>上面链接的内容同样证明了一次MD5并不可靠。那么第二种和第三种是否可靠呢？第二种，要看你随机字符串有多长了，再加上原始密码，字符串越长，暴力破解的时间就越长，第三种就要暴力破解32位字符串的MD5，耗时嘛，以目前的硬件来看，估计单台机器普通人是等不到它破解出来了。不过如果涉及到国防级别，像美国使用超级计算机集群来破解的话，或许，用不了多长时间。</p>
+
+<p>下面介绍第四种，是django 1.4默认采用的密码加密算法。点击上面PBKDF2的链接，在维基百科上已经有很详细的介绍，它使得暴力破解的希望更加渺茫。这也是django1.4安全性提升的一个亮点，在此之前它使用sha1来加密。PBKDF2实际上默认采用并推荐sha256，然后再配合10000次运算得出的结果。
+参考标准：<a href="https://www.ietf.org/rfc/rfc6070.txt" target="_blank">rfc6070</a>，<a href="https://www.ietf.org/rfc/rfc2898.txt" target="_blank">rfc2898</a>
+我们看一下django中关于PBKDF2的代码：utils/crypto.py</p>
+
+<p><pre class="prettyprint linenums">
+def pbkdf2(password, salt, iterations, dklen=0, digest=None):
+    &ldquo;&rdquo;&rdquo;
+    Implements PBKDF2 as defined in RFC 2898, section 5.2</p>
+
+<pre><code>HMAC+SHA256 is used as the default pseudo random function.
+
+Right now 10,000 iterations is the recommended default which takes
+100ms on a 2.2Ghz Core 2 Duo.  This is probably the bare minimum
+for security given 1000 iterations was recommended in 2001. This
+code is very well optimized for CPython and is only four times
+slower than openssl's implementation.
+&quot;&quot;&quot;
+assert iterations &gt; 0
+if not digest:
+    digest = hashlib.sha256
+hlen = digest().digest_size
+if not dklen:
+    dklen = hlen
+if dklen &gt; (2 ** 32 - 1) * hlen:
+    raise OverflowError('dklen too big')
+l = -(-dklen // hlen)
+r = dklen - (l - 1) * hlen
+
+hex_format_string = &quot;%%0%ix&quot; % (hlen * 2)
+
+def F(i):
+    def U():
+        u = salt + struct.pack('&gt;I', i)
+        for j in xrange(int(iterations)):
+            u = _fast_hmac(password, u, digest).digest()
+            yield _bin_to_long(u)
+    return _long_to_bin(reduce(operator.xor, U()), hex_format_string)
+
+T = [F(x) for x in range(1, l + 1)]
+return ''.join(T[:-1]) + T[-1][:r]
+</code></pre>
+
+<p></pre>
+然后在django.contrib.auth.hashers里使用，密码以“algorithm$number of iterations$salt$password hash”的格式返回，并存储在同一个字段中。当然，如果你自己编写PBKDF2函数，你可以将salt存储在任意字段。只要让每个用户都不一样就行了。
+<pre class="prettyprint linenums">
+class PBKDF2PasswordHasher(BasePasswordHasher):
+    &ldquo;&rdquo;&rdquo;
+    Secure password hashing using the PBKDF2 algorithm (recommended)</p>
+
+<pre><code>Configured to use PBKDF2 + HMAC + SHA256 with 10000 iterations.
+The result is a 64 byte binary string.  Iterations may be changed
+safely but you must rename the algorithm if you change SHA256.
+&quot;&quot;&quot;
+algorithm = &quot;pbkdf2_sha256&quot;
+iterations = 10000
+digest = hashlib.sha256
+
+def encode(self, password, salt, iterations=None):
+    assert password
+    assert salt and '$' not in salt
+    if not iterations:
+        iterations = self.iterations
+    hash = pbkdf2(password, salt, iterations, digest=self.digest)
+    hash = hash.encode('base64').strip()
+    return &quot;%s$%d$%s$%s&quot; % (self.algorithm, iterations, salt, hash)
+
+def verify(self, password, encoded):
+    algorithm, iterations, salt, hash = encoded.split('$', 3)
+    assert algorithm == self.algorithm
+    encoded_2 = self.encode(password, salt, int(iterations))
+    return constant_time_compare(encoded, encoded_2)
+
+def safe_summary(self, encoded):
+    algorithm, iterations, salt, hash = encoded.split('$', 3)
+    assert algorithm == self.algorithm
+    return SortedDict([
+        (_('algorithm'), algorithm),
+        (_('iterations'), iterations),
+        (_('salt'), mask_hash(salt)),
+        (_('hash'), mask_hash(hash)),
+    ])
+</code></pre>
+
+<p></pre>
+再贴一个php的PBKDF2加密函数
+<pre class="prettyprint linenums">
+&lt;?php
+  // PBKDF2 Implementation (described in RFC 2898)
+  //
+  // @param   string  p   password
+  // @param   string  s   salt
+  // @param   int     c   iteration count (use 1000 or higher)
+  // @param   int     kl  derived key length
+  // @param   string  a   hash algorithm
+  // @param   int     st  start position of result
+  //
+  // @return  string  derived key
+  function str_hash_pbkdf2($p, $s, $c, $kl, $a = &lsquo;sha256&rsquo;, $st=0)
+  {
+    $kb = $start+$kl;                        // Key blocks to compute
+    $dk = &ldquo;;                                    // Derived key</p>
+
+<pre><code>// Create key
+for ($block=1; $block&lt;=$kb; $block++)
+{
+  // Initial hash for this block
+  $ib = $h = hash_hmac($a, $s . pack('N', $block), $p, true); 
+
+  // Perform block iterations
+  for ($i=1; $i&lt;$c; $i++)
+  {
+    // XOR each iterate
+    $ib ^= ($h = hash_hmac($a, $h, $p, true));
+  } 
+
+  $dk .= $ib;                                // Append iterated block
+} 
+
+// Return derived key of correct length
+return substr($dk, $start, $kl);
+</code></pre>
+
+<p>}
+?&gt;
+</pre>
+bcrypt加密在使用上则简单很多。不过多数语言要针对它安装扩展。如php,python都要安装扩展。
+使如django中使用bcrypt加密的代码：
+<pre class="prettyprint linenums">
+bcrypt = self._load_library()
+        data = bcrypt.hashpw(password, salt)
+</pre>
+所以这里就不多介绍bcrypt了。字符串的长度，影响它生成hash值的时间。当然，这似乎在任何一种hash算法上都是成正比的。</p>
+
+<p>实际上，无论是bcrypt还是PBKDF2都有各自的忠实拥护者。另外bcrypt不支持超过55个字符的密码短语。到底那一个好，没有标准答案，取决于你问那一方的粉丝。我个人偏向于使用PBKDF2，下面的参考资料中，或许也会给你答案。</p>
+
+<p>其它参考资料：
+<a href="http://stackoverflow.com/questions/4433216/password-encryption-pbkdf2-using-sha512-x-1000-vs-bcrypt" target="_blank">password-encryption-pbkdf2-using-sha512-x-1000-vs-bcrypt</a>
+<a href="http://stackoverflow.com/questions/1561174/sha512-vs-blowfish-and-bcrypt" target="_blank">sha512-vs-blowfish-and-bcrypt</a></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/970" title="Go的格式化工具">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/929" title="更改Mac中的默认JDK版本">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2012-10-02</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Web-ref">Web <span>9</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#bcrypt-ref">bcrypt <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#md5-ref">md5 <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#PBKDF2-ref">PBKDF2 <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

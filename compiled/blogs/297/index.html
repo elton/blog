@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Git学习笔记(7) -- 独立开发者所用的命令(c)</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Git学习笔记(7) -- 独立开发者所用的命令(c) </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>这次我们看一些实例</p>
+
+<p>Use a tarball as a starting point for a new repository.
+<pre class="prettyprint linenums">$ tar zxf frotz.tar.gz
+$ cd frotz
+$ git init
+$ git add . //添加所有文件到index
+$ git commit -m &ldquo;import of frotz source tree.&rdquo;
+$ git tag v2.43</pre>
+Create a topic branch and develop.
+<pre class="prettyprint linenums">$ git checkout -b alsa-audio (1)
+$ edit/compile/test
+$ git checkout &ndash; curses/ux_audio_oss.c (2)
+$ git add curses/ux_audio_alsa.c (3)
+$ edit/compile/test
+$ git diff HEAD (4)
+$ git commit -a -s (5)
+$ edit/compile/test
+$ git reset &ndash;soft HEAD^ (6)
+$ edit/compile/test
+$ git diff ORIG_HEAD (7)
+$ git commit -a -c ORIG_HEAD (8)
+$ git checkout master (9)
+$ git merge alsa-audio (10)
+$ git log &ndash;since=&lsquo;3 days ago&rsquo; (11)
+$ git log v2.43.. curses/ (12)</pre>
+<ol>
+    <li>create a new topic branch.</li>
+    <li>revert your botched changes in curses/ux_audio_oss.c.</li>
+    <li>you need to tell git if you added a new file; removal and modification will be caught if you do git commit -a later.</li>
+    <li>to see what changes you are committing.</li>
+    <li>commit everything as you have tested, with your sign-off.</li>
+    <li>take the last commit back, keeping what is in the working tree.</li>
+    <li>look at the changes since the premature commit we took back.</li>
+    <li>redo the commit undone in the previous step, using the message you originally wrote.</li>
+    <li>switch to the master branch.</li>
+    <li>merge a topic branch into your master branch.</li>
+    <li>review commit logs; other forms to limit output can be combined and include &ndash;max-count=10 (show 10 commits), &ndash;until=2005-12-10, etc.</li>
+    <li>view only the changes that touch what&rsquo;s in curses/ directory, since v2.43 tag.</li>
+</ol></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/274" title="Git学习笔记(1) -- 创建和修改项目">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/290" title="Git学习笔记(6) -- 独立开发者所用的命令(b)">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-07-22</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#git-ref">git <span>11</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>安装支持ext4文件系统的Gentoo</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>安装支持ext4文件系统的Gentoo </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>ext4出来了，但是gentoo官方文档并没有具体介绍如何安装带ext4支持的gentoo。 昨天试了一下，记录下来：</p>
+
+<h3>1. 事前准备</h3>
+
+<p>1a. 设置root密码</p>
+
+<h1>passwd</h1>
+
+<p>New password: （输入新密码）
+Re-enter password: （再次输入密码）</p>
+
+<p>1b. 启动ssh
+/etc/init.d/sshd start</p>
+
+<p>1c. 网络准备
+如果启动的时候，发现没有eth0网卡，可能是没有获得到ip地址，而不是网卡没有找到。</p>
+
+<p>输入</p>
+
+<h1>dhcpcd eth0</h1>
+
+<p>重新获得ip地址就可以看到网卡找到了</p>
+
+<h3>2. 预备磁盘</h3>
+
+<p>2a. fdisk分区</p>
+
+<h1>fdisk /dev/sda</h1>
+
+<p>常用命令：p 显示当前分区， n 创建新分区</p>
+
+<p>创建boot分区
+n创建分区
+p选择主分区类型
+从第一个柱面开始
+＋32M 设定boot分区大小为32M
+a 建立启动标记
+1 选择第一个分区即boot分区为启动分区</p>
+
+<p>如果你再次按p键，你就会注意到，在“Boot”那一列有个*</p>
+
+<p>我们需要把这个分区设置成可启动的。键入a来给分区添加启动标志，然后键入1。如果你再次按p键，你就会注意到，在“Boot”那一列有个*</p>
+
+<p>创建交换分区
+方式跟创建boot分区一样
+t 更改分区类型为swap， 输入82</p>
+
+<p>保存分区布局
+键入w来保存分区布局并退出fdisk。</p>
+
+<p>分区的例子
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sda1   *           1           5       40131   83  Linux
+/dev/sda2               6        6533    52436160   83  Linux
+/dev/sda3            6534        8101    12594960   82  Linux swap / Solaris
+/dev/sda4            8102       38913   247497390    5  Extended
+/dev/sda5            8102       14629    52436128+  83  Linux
+/dev/sda6           14630       38913   195061198+  83  Linux</p>
+
+<p>sda1 /boot 32M
+sda2 / 50G
+sda3 swap 12G
+sda5 /usr 50G
+sda6 /data 184G</p>
+
+<p>2b. 创建文件系统
+格式化分区</p>
+
+<p>将sda1格式化为ext3，其余格式化为ext4</p>
+
+<h1>mke2fs -j /dev/sda1</h1>
+
+<h1>mkfs.ext4 /dev/sda2</h1>
+
+<h1>mkfs.ext4 /dev/sda5</h1>
+
+<h1>mkfs.ext4 /dev/sda6</h1>
+
+<p>激活交换分区
+创建交换分区标志</p>
+
+<h1>mkswap /dev/sda3</h1>
+
+<p>激活交换分区</p>
+
+<h1>swapon /dev/sda3</h1>
+
+<p>2c.挂载</p>
+
+<h1>mount /dev/sda2 /mnt/gentoo</h1>
+
+<h1>mkdir /mnt/gentoo/boot</h1>
+
+<h1>mount /dev/sda1 /mnt/gentoo/boot</h1>
+
+<p>如果独立创建/usr分区（emerage 的下载的文件都保存在/usr/src下，所以建议独立分区），则执行</p>
+
+<h1>mkdir /mnt/gentoo/usr</h1>
+
+<h1>mount /dev/sda5 /mnt/gentoo/usr</h1>
+
+<h3>3.安装Gentoo安装文件</h3>
+
+<p>3a.安装一个Stage Tarball
+解开stage</p>
+
+<h1>cd mnt/gentoo</h1>
+
+<h1>tar xvjpf stage3-*.tar.bz2</h1>
+
+<p>p表示保留权限</p>
+
+<p>3b. 安装Portage
+从网上下载和安装Portage快照</p>
+
+<h1>cd /mnt/gentoo</h1>
+
+<h1>links <a href="http://www.gentoo.org/main/en/mirrors.xml">http://www.gentoo.org/main/en/mirrors.xml</a></h1>
+
+<p>选择一个离你最近的镜像，打开snapshots/目录。然后选择最新的Portage快照（portage-latest.tar.bz2）并按D来下载它。
+现在按Q来退出浏览器。你现在已经有一个Portage快照保存在/mnt/gentoo里了。</p>
+
+<p>校验Portage快照的完整性</p>
+
+<h1>md5sum -c portage-latest.tar.bz2.md5sum</h1>
+
+<p>portage-latest.tar.bz2: OK</p>
+
+<p>解开Portage快照</p>
+
+<h1>tar xvjf /mnt/gentoo/portage-latest.tar.bz2 -C /mnt/gentoo/usr</h1>
+
+<p>3c.配置编译选项</p>
+
+<h1>nano -w /mnt/gentoo/etc/make.conf</h1>
+
+<p>CHOST 不需要更改
+其他的根据你的机器的配置来，如：
+CFLAGS=&ldquo;-march=core2 -mfpmath=sse,387 -O2 -pipe -fomit-frame-pointer -mmmx -msse -msse2 -msse3&rdquo;
+CXXFLAGS=&ldquo;${CFLAGS}&rdquo;
+LDFLAGS=&ldquo;-Wl,-O2&rdquo;</p>
+
+<p>－march和mtune具体参数的含义参见：http://gcc.gnu.org/onlinedocs/gcc-4.4.0/gcc/i386-and-x86_002d64-Options.html#i386-and-x86_002d64-Options</p>
+
+<h3>4. 安装Gentoo基本系统</h3>
+
+<p>4a.chroot
+选择境像站点</p>
+
+<h1>mirrorselect -i -o &gt;&gt; /mnt/gentoo/etc/make.conf</h1>
+
+<p>拷贝DNS信息</p>
+
+<h1>cp -L /etc/resolv.conf /mnt/gentoo/etc/</h1>
+
+<p>挂载/proc和/dev文件系统</p>
+
+<h1>mount -t proc none /mnt/gentoo/proc</h1>
+
+<h1>mount -o bind /dev /mnt/gentoo/dev</h1>
+
+<p>进入新的系统环境</p>
+
+<h1>chroot /mnt/gentoo /bin/bash</h1>
+
+<h1>env-update</h1>
+
+<blockquote>
+<blockquote>
+<p>Regenerating /etc/ld.so.cache&hellip;</p>
+
+<h1>source /etc/profile</h1>
+
+<h1>export PS1=&ldquo;(chroot) $PS1&rdquo;</h1>
+</blockquote>
+</blockquote>
+
+<p>4b. 配置Portage
+更新Portage树</p>
+
+<h1>emerge &ndash;sync</h1>
+
+<p>配置USE变量
+nano -w /etc/make.conf</p>
+
+<p>配置Locales
+nano -w /etc/locale.gen
+添加zh_CN.UTF-8 UTF-8</p>
+
+<p>运行
+＃locale-gen
+生成local.gen文件</p>
+
+<h3>5. 配置内核</h3>
+
+<p>5.a. 时区</p>
+
+<p>cp /usr/share/zoneinfo/PRC /etc/localtime
+设置PRC为当前时区</p>
+
+<p>5.b. 安装源码
+emerge gentoo-sources
+gentoo-sources 为一般用途，只打了一般的安全补丁
+hardened-sources 服务器用途， 安全性和稳定性有所提高</p>
+
+<p>5.c. 手动配置内核
+安装工具
+emerge pciutils
+用lspci检查当前系统配置</p>
+
+<p>配置内核</p>
+
+<h1>cd /usr/src/linux</h1>
+
+<h1>make menuconfig</h1>
+
+<p>根据你的硬件和你的需要选择对应的选项，主要就是网卡和文件系统两方面
+因为要支持ext4，特别注意file system中有关ext4的设置。把相关内容都选上</p>
+
+<p>编译内核
+之后，使用make &amp;&amp; make modules_install来编译内核</p>
+
+<p>安装内核
+编译后，执行下面命令来安装内核
+cp arch/x86_64/boot/bzImage /boot/kernel-2.6.29-gentoo-r5
+其中kernel-2.6.28-gentoo-r9根据你使用的内核和版本来定。 在/usr/src里面可以看到你之前下载的linux内核源码，可以查看到版本号</p>
+
+<h3>6. 配置系统</h3>
+
+<p>6.a. 文件系统信息
+创建/etc/fstab
+/etc/fstab使用一种特殊语法格式。每行都包含六个字段。这些字段之间由空白键（空格键，tab键，或者两者混合使用）分隔。每个字段都有自己的含意：
+    •   第一个字段是对分区的描述，也就是设备文件的路径
+    •   第二个字段是分区挂载点，也就是分区应该挂载到的地方
+    •   第三个字段给出分区所用的文件系统
+    •   第四个字段给出的是挂载分区时mount命令所用的挂载选项。由于每个文件系统都有自己的挂载选项，我们建议你阅读mount手册（man mount）以获得所有挂载选项的列表。多个挂载选项之间是用逗号分隔的。
+    •   第五个字段是给dump使用的，用以决定这个分区是否需要dump。一般情况下，你可以把该字段设为0（零）。
+    •   第六个字段是给fsck使用的，用以决定系统非正常关机之后文件系统的检查顺序。根文件系统应该为1，而其它的应该为2（如果不需要文件系统自检的话可以设为0）</p>
+
+<p>另外一个使用了ext4的例子
+/dev/sda1       /boot       ext3        noauto,noatime  1 2
+/dev/sda2       /           ext4        noatime         0 1
+/dev/sda3       none        swap    sw              0 0
+/dev/sda5       /usr            ext4        noatime         0 2
+/dev/sda6       /data       ext4        noatime         0 2
+/dev/cdrom      /mnt/cdrom  auto        noauto,ro       0 0</p>
+
+<p>auto选项可以使mount猜测文件系统（推荐对于可移动设备采用这个选项，因为它们可能采用很多不同的文件系统），而user选项使得非root用户可以挂载光驱。
+为了提高性能，大部分用户会添加noatime挂载选项。由于不记录该分区中文件的访问时间（一般来说你并不需要知道它），这个选项能够提高系统速度。</p>
+
+<p>6.b. 网络信息
+设定主机名</p>
+
+<h1>nano -w /etc/conf.d/hostname</h1>
+
+<p>配置你的网络</p>
+
+<h1>nano -w /etc/conf.d/net</h1>
+
+<p>为了输入你自己的IP地址，子网掩码和网关，你需要设置config_eth0和routes_eth0：</p>
+
+<p>手动为eth0设置IP信息
+config_eth0=( &ldquo;192.168.0.2 netmask 255.255.255.0 brd 192.168.0.255&rdquo; )
+routes_eth0=( &ldquo;default via 192.168.0.1&rdquo; )</p>
+
+<p>如果你使用DHCP，请定义一下config_eth0：
+config_eth0=( &ldquo;dhcp&rdquo; )</p>
+
+<p>在启动时自动启用网络</p>
+
+<h1>rc-update add net.eth0 default</h1>
+
+<p>6.c. 系统信息
+设置root密码</p>
+
+<h1>passwd</h1>
+
+<p>修改系统信息</p>
+
+<h1>nano -w /etc/rc.conf</h1>
+
+<p>比如把默认的编辑器改为vi</p>
+
+<p>设置键盘布局</p>
+
+<h1>nano -w /etc/conf.d/keymaps</h1>
+
+<p>设置时钟选项</p>
+
+<h1>nano -w /etc/conf.d/clock</h1>
+
+<p>如果你机器上的钟不用UTC，你需要在文件钟加上CLOCK=&ldquo;local&rdquo;。否则，你的时钟就有可能出现偏差。</p>
+
+<h3>7. 安装必要的系统工具</h3>
+
+<p>7.a. 系统日志工具</p>
+
+<h1>emerge syslog-ng</h1>
+
+<h1>emerge logrotate</h1>
+
+<h1>rc-update add syslog-ng default</h1>
+
+<p>7.b. Cron守护进程</p>
+
+<h1>emerge vixie-cron</h1>
+
+<h1>rc-update add vixie-cron default</h1>
+
+<p>7.c. 文件索引</p>
+
+<h1>emerge slocate</h1>
+
+<p>7.e. 网络工具
+安装一个DHCP客户端</p>
+
+<h1>emerge dhcpcd</h1>
+
+<h3>8. 配置引导程序</h3>
+
+<p>8a. 使用GRUB
+安装GRUB</p>
+
+<h1>emerge grub</h1>
+
+<p>尽管现在已经安装完GRUB，我们仍需要为其写一个配置文件，并将其安置到硬盘的主引导记录中，使它能自动引导您新创建的内核。您可以使用nano（或其他可用的编辑器）来创建配置文件/boot/grub/grub.conf：</p>
+
+<h1>nano -w /boot/grub/grub.conf</h1>
+
+<p>例如</p>
+
+<h1>默认选择哪个列表来引导。0表示第一个， 1表示第二个，以此类推。</h1>
+
+<p>default 0</p>
+
+<h1>引导默认列表前等待多少秒</h1>
+
+<p>timeout 30</p>
+
+<h1>使用漂亮、“臃肿”的spalsh图像来增加一点趣味:)</h1>
+
+<h1>如果您没有安装显卡，请将这行注释掉</h1>
+
+<p>splashimage=(hd0,0)/boot/grub/splash.xpm.gz</p>
+
+<p>title Gentoo Linux 2.6.29-r5</p>
+
+<h1>内核镜像（或者操作系统）所在分区</h1>
+
+<p>root (hd0,0)
+kernel /boot/kernel-2.6.29-gentoo-r5 root=/dev/sda2</p>
+
+<p>＃ 如果使用ext4格式的分区，需要使用下面的参数
+kernel /boot/kernel-2.6.29-gentoo-r5 root=/dev/sda2 rootfs=ext4</p>
+
+<p>title Gentoo Linux 2.6.29-r5 (rescue)</p>
+
+<h1>内核镜像（或者操作系统）所在分区</h1>
+
+<p>root (hd0,0)
+kernel /boot/kernel-2.6.29-gentoo-r5 root=/dev/sda2 init=/bin/bb</p>
+
+<h1>接下来的四行只有在您与Windows系统进行双启动的情况下才需要。</h1>
+
+<h1>本例中，windows系统位于/dev/sda6。</h1>
+
+<p>title Windows XP
+rootnoverify (hd0,5)
+makeactive
+chainloader +1</p>
+
+<p>使用grub-install安装GRUB</p>
+
+<p>为了安装GRUB，您将需要执行grub-install命令。尽管如此，当我们处于chroot的环境时，grub-install并不能正常的工作。我们还需要创建一个/etc/mtab，在里面列出所有已加载的文件系统。幸运的是，有一个简单的方法来完成这个任务——将/proc/mounts拷贝成/etc/mtab，如果您没有创建一个独立的boot分区，请排除rootfs行。下面的命令在两种情况下都可以正常工作：</p>
+
+<h1>grep -v rootfs /proc/mounts &gt; /etc/mtab</h1>
+
+<p>现在我们就可以用grub-install来安装GRUB了：</p>
+
+<h1>grub-install &ndash;no-floppy /dev/sda</h1>
+
+<p>将ssh加入到启动进程
+rc-update add sshd default</p>
+
+<p>8b. 重启系统</p>
+
+<h1>exit</h1>
+
+<p>cdimage ~# cd
+cdimage ~# umount /mnt/gentoo/boot /mnt/gentoo/dev /mnt/gentoo/proc /mnt/gentoo
+cdimage ~# reboot</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/149" title="Gentoo的编译参数">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/133" title="Cocoa内存管理的简单规则[翻译]">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-07-02</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#ext4-ref">ext4 <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#gentoo-ref">gentoo <span>14</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

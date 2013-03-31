@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CentOS环境中lighttpd+php+fastcgi+eAccelerator安装配置</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>CentOS环境中lighttpd+php+fastcgi+eAccelerator安装配置 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>Lighttpd 作为新一代的web server，以小巧（不到1M的大小）、快速而著称，因为服务器上安装了rails、java，并以lighttpd为前端代理服务器，不想再部署apache了，所以直接使用lighttpd来部署，顺便看一下性能如何。</p>
+
+<p>本文主要介绍在CentOS下，配置一套用lighttp作为web server的php环境</p>
+
+<p>· 安装Lighttpd
+从http://www.lighttpd.net/download/下载源码
+安装前先检查pcre是否安装，需要pcre和pcre-devel两个包。 用yum search pcre*检查，如果都是installed就是都安装了。否则安装缺少的包。
+<pre class="prettyprint linenums">yum install pcre-devel</p>
+
+<p>tar xzvf lighttpd-1.4.23.tar.gz
+cd lighttpd-1.4.23
+./configure &ndash;prefix=/usr/local/lighttpd
+ </pre>
+configure完毕以后，会给出一个激活的模块和没有激活模块的清单，可以检查一下，是否自己需要的模块都已经激活，在enable的模块中一定要有“mod_rewrite”这一项，否则重新检查pcre是否安装。然后编译安装：
+<pre class="prettyprint linenums">make &amp;&amp; make install </pre></p>
+
+<p>编译后配置：
+<pre class="prettyprint linenums">
+cp doc/sysconfig.lighttpd /etc/sysconfig/lighttpd
+mkdir /etc/lighttpd
+cp doc/lighttpd.conf /etc/lighttpd/lighttpd.conf
+ </pre>
+如果你的Linux是RedHat/CentOS，那么：
+<pre class="prettyprint linenums">
+cp doc/rc.lighttpd.redhat /etc/init.d/lighttpd
+ </pre>
+如果你的Linux是SuSE，那么：
+<pre class="prettyprint linenums">
+cp doc/rc.lighttpd /etc/init.d/lighttpd
+ </pre>
+其他Linux发行版本可以自行参考该文件内容进行修改。然后修改/etc/init.d/lighttpd，把
+<pre class="prettyprint linenums">
+lighttpd=&ldquo;/usr/sbin/lighttpd&rdquo;
+ </pre>
+改为
+<pre class="prettyprint linenums">
+lighttpd=&ldquo;/usr/local/lighttpd/sbin/lighttpd&rdquo;
+  </pre>
+此脚本用来控制lighttpd的启动关闭和重起：
+<pre class="prettyprint linenums">
+/etc/init.d/lighttpd start
+/etc/init.d/lighttpd stop
+/etc/init.d/lighttpd restart
+ </pre>
+如果你希望服务器启动的时候就启动lighttpd，那么：
+<pre class="prettyprint linenums">
+chkconfig lighttpd on
+</pre>
+这样lighttpd就安装好了，接下来需要配置lighttpd。</p>
+
+<p>配置Lighttpd</p>
+
+<p>修改/etc/lighttpd/lighttpd.conf
+1）server.modules
+取消需要用到模块的注释，mod_rewrite，mod_access，mod_fastcgi，mod_simple_vhost，mod_cgi，mod_compress，mod_accesslog是一般需要用到的。</p>
+
+<p>2）server.document-root, server.error-log，accesslog.filename需要指定相应的目录</p>
+
+<p>3）用什么权限来运行lighttpd
+server.username            = &ldquo;nobody&rdquo;
+server.groupname           = &ldquo;nobody&rdquo;
+从安全角度来说，不建议用root权限运行web server，可以自行指定普通用户权限。</p>
+
+<p>4）静态文件压缩
+compress.cache-dir         = &ldquo;/tmp/lighttpd/cache/compress&rdquo;
+compress.filetype          = (&ldquo;text/plain&rdquo;, &ldquo;text/html&rdquo;,&ldquo;text/javascript&rdquo;,&ldquo;text/css&rdquo;)
+可以指定某些静态资源类型使用压缩方式传输，节省带宽，对于大量AJAX应用来说，可以极大提高页面加载速度。</p>
+
+<p>5）配置ruby on rails</p>
+
+<p>最简单的配置如下：
+<pre class="prettyprint linenums">
+$HTTP[&ldquo;host&rdquo;] == &ldquo;www.xxx.com&rdquo; {
+ server.document-root = &ldquo;/yourrails/public&rdquo;
+ server.error-handler-404 = &ldquo;/dispatch.fcgi&rdquo;
+ fastcgi.server = (&ldquo;.fcgi&rdquo; =&gt;
+    (&ldquo;localhost&rdquo; =&gt;
+      (&ldquo;min-procs&rdquo; =&gt; 10,
+       &ldquo;max-procs&rdquo; =&gt; 10,
+       &ldquo;socket&rdquo; =&gt; &ldquo;/tmp/lighttpd/socket/rails.socket&rdquo;,
+       &ldquo;bin-path&rdquo; =&gt; &ldquo;/yourrails/public/dispatch.fcgi&rdquo;,
+       &ldquo;bin-environment&rdquo; =&gt; (&ldquo;RAILS_ENV&rdquo; =&gt; &ldquo;production&rdquo;)
+      )
+    )
+ )
+}
+</pre>
+即由lighttpd启动10个FCGI进程，lighttpd和FCGI之间使用本机Unix Socket通信。</p>
+
+<p>如果想指定www.abc.com以及所有二级域名，则需要把第一行改为
+$HTTP[”host”] =~ “(^|.)abc.com” {
+…
+}</p>
+
+<p>如果要设置代理，比如lighttpd和tomcat整合，tomcat放在lighttpd后面，则需要通过代理访问tomcat</p>
+
+<p>$HTTP[&ldquo;host&rdquo;] =~ &ldquo;www.domain.cn&rdquo; {
+   proxy.server = ( &ldquo;&rdquo; =&gt; ( &ldquo;localhost&rdquo; =&gt; ( &ldquo;host&rdquo;=&gt; &ldquo;127.0.0.1&rdquo;, &ldquo;port&rdquo;=&gt; 8080 ) ) )
+}</p>
+
+<p>则www.domain.cn为主机的网址都交给tomcat处理，tomcat的端口号为8080. 在tomcat的虚拟主机中，需要捕获www.domain.cn这个主机名，设置这个虚拟主机。这里的host都是跟tomcat里面的虚拟主机对应的。</p>
+
+<p>· 安装支持fastcgi的PHP
+安装PHP所需的相关类库
+curl
+<pre class="prettyprint linenums">
+wget <a href="http://curl.cs.pu.edu.tw/download/curl-7.19.5.tar.bz2">http://curl.cs.pu.edu.tw/download/curl-7.19.5.tar.bz2</a></p>
+
+<p>tar xvjf curl-7.19.5.tar.bz2
+cd curl-7.19.5
+./configure &ndash;prefix=/usr/local/curl
+make
+make install
+</pre></p>
+
+<p>gettext
+<pre class="prettyprint linenums">
+wget <a href="ftp://ftp.ntu.edu.tw/pub/gnu/gnu/gettext/gettext-0.17.tar.gz">ftp://ftp.ntu.edu.tw/pub/gnu/gnu/gettext/gettext-0.17.tar.gz</a>
+tar xvzf gettext-0.17.tar.gz
+cd gettext-0.17
+./configure &ndash;prefix=/usr/local/gettext
+make
+make install
+</pre></p>
+
+<p>zlib
+<pre class="prettyprint linenums">
+wget <a href="http://kent.dl.sourceforge.net/sourceforge/libpng/zlib-1.2.3.tar.gz">http://kent.dl.sourceforge.net/sourceforge/libpng/zlib-1.2.3.tar.gz</a>
+tar xvzf zlib-1.2.3.tar.gz
+cd zlib-1.2.3
+./configure &ndash;prefix=/usr/local/zlib
+make &amp;&amp; make install
+</pre></p>
+
+<p>libpng
+<pre class="prettyprint linenums">
+wget <a href="http://www.mirrorservice.org/sites/download.sourceforge.net/pub/sourceforge/l/li/libpng/libpng-1.2.9.tar.gz">http://www.mirrorservice.org/sites/download.sourceforge.net/pub/sourceforge/l/li/libpng/libpng-1.2.9.tar.gz</a>
+tar xvzf libpng-1.2.9.tar.gz
+cd libpng-1.2.9
+./configure &ndash;prefix=/usr/local/libpng
+make &amp;&amp; make install
+</pre></p>
+
+<p>jpeg
+<pre class="prettyprint linenums">
+wget <a href="http://www.ijg.org/files/jpegsrc.v6b.tar.gz">http://www.ijg.org/files/jpegsrc.v6b.tar.gz</a>
+tar xvzf jpegsrc.v6b.tar.gz
+cd jpeg-6b/
+./configure &ndash;prefix=/usr/local/jpeg6
+make</p>
+
+<p>mkdir /usr/local/jpeg6/bin
+mkdir -p /usr/local/jpeg6/bin
+mkdir -p /usr/local/jpeg6/man/man1
+mkdir -p /usr/local/jpeg6/lib
+mkdir -p /usr/local/jpeg6/include
+make install-lib
+make install
+</pre></p>
+
+<p>freetype
+<pre class="prettyprint linenums">
+wget <a href="http://download.savannah.gnu.org/releases/freetype/freetype-2.3.9.tar.gz">http://download.savannah.gnu.org/releases/freetype/freetype-2.3.9.tar.gz</a>
+tar xvzf freetype-2.3.9.tar.gz
+cd freetype-2.3.9
+./configure &ndash;prefix=/usr/local/freetype2
+make
+make install
+</pre></p>
+
+<p>gd
+<pre class="prettyprint linenums">
+wget <a href="http://www.libgd.org/releases/gd-2.0.35.tar.gz">http://www.libgd.org/releases/gd-2.0.35.tar.gz</a>
+tar xvzf gd-2.0.35.tar.gz
+cd gd-2.0.35
+./configure &ndash;prefix=/usr/local/gd2 &ndash;with-zlib=/usr/local/zlib/ &ndash;with-png=/usr/local/libpng/ &ndash;with-jpeg=/usr/local/jpeg6/ &ndash;with-freetype=/usr/local/freetype2/
+make
+如果第一次make出错，试着再make一次，我就是这样，第二次就对了。
+make install
+</pre></p>
+
+<p>PHP
+<pre class="prettyprint linenums">
+tar xvzf php-5.2.10.tar.gz
+cd php-5.2.10
+./configure &ndash;prefix=/usr/local/php &ndash;with-mysql=/usr/local/mysql &ndash;with-pdo-mysql=/usr/local/mysql &ndash;with-jpeg-dir=/usr/local/jpeg6/ &ndash;with-png-dir=/usr/local/libpng/ &ndash;with-gd=/usr/local/gd2/ &ndash;with-freetype-dir=/usr/local/freetype2/  &ndash;with-zlib-dir=/usr/local/zlib &ndash;with-curl=/usr/local/curl &ndash;with-gettext=/usr/local/gettext &ndash;enable-fastcgi &ndash;enable-zend-multibyte &ndash;with-config-file-path=/etc &ndash;enable-discard-path &ndash;enable-force-cgi-redirect
+make
+make install
+cp php.ini-dist /etc/php.ini</p>
+
+<p>可以使用php -m查看你安装的模块
+</pre></p>
+
+<p>eAccelerator
+eAccelerator是一个开源的PHP加速器
+<pre class="prettyprint linenums">
+wget <a href="http://bart.eaccelerator.net/source/0.9.5.3/eaccelerator-0.9.5.3.tar.bz2">http://bart.eaccelerator.net/source/0.9.5.3/eaccelerator-0.9.5.3.tar.bz2</a>
+tar xjvf eaccelerator-0.9.5.3.tar.bz2
+cd eaccelerator-0.9.5.3
+export PHP_PREFIX=&ldquo;/usr/local/php&rdquo;
+$PHP_PREFIX/bin/phpize
+./configure &ndash;enable-eaccelerator=shared &ndash;with-php-config=$PHP_PREFIX/bin/php-config
+make
+make install
+</pre>
+执行好后，会提示安装到的路径，下面会用到，如我的被安装到这里
+/usr/local/php/lib/php/extensions/no-debug-non-zts-20060613
+编辑php.ini中的内容
+vim /etc/php.ini
+<pre class="prettyprint linenums">
+cgi.fix_pathinfo = 1</p>
+
+<p>zend_extension=&ldquo;/usr/local/php/lib/php/extensions/no-debug-non-zts-20060613/eaccelerator.so&rdquo;
+eaccelerator.shm_size=&ldquo;16&rdquo;
+eaccelerator.cache_dir=&ldquo;/tmp/eaccelerator&rdquo;
+eaccelerator.enable=&ldquo;1&rdquo;
+eaccelerator.optimizer=&ldquo;1&rdquo;
+eaccelerator.check_mtime=&ldquo;1&rdquo;
+eaccelerator.debug=&ldquo;0&rdquo;
+eaccelerator.filter=&ldquo;&rdquo;
+eaccelerator.shm_max=&ldquo;0&rdquo;
+eaccelerator.shm_ttl=&ldquo;0&rdquo;
+eaccelerator.shm_prune_period=&ldquo;0&rdquo;
+eaccelerator.shm_only=&ldquo;0&rdquo;
+eaccelerator.compress=&ldquo;1&rdquo;
+eaccelerator.compress_level=&ldquo;9&rdquo;
+</pre></p>
+
+<p>如果一切顺利，你可以通过下面命令来验证是否安装成功
+<pre class="prettyprint linenums">
+$ php -v
+PHP 5.2.10 (cli) (built: Jun 20 2009 23:32:09)
+Copyright &copy; 1997-2009 The PHP Group
+Zend Engine v2.2.0, Copyright &copy; 1998-2009 Zend Technologies
+    with eAccelerator v0.9.5.3, Copyright &copy; 2004-2006 eAccelerator, by eAccelerator
+</pre>
+修改/etc/lighttpd/lighttpd.conf文件，添加下面的配置
+vim /etc/lighttpd/lighttpd.conf
+<pre class="prettyprint linenums">
+fastcgi.server             = ( &ldquo;.php&rdquo; =&gt;
+                               ( &ldquo;localhost&rdquo; =&gt;
+                                 (
+                                   &ldquo;socket&rdquo; =&gt; &ldquo;/tmp/php-fastcgi.socket&rdquo;,
+                                   &ldquo;bin-path&rdquo; =&gt; &ldquo;/usr/local/php/bin/php-cgi&rdquo;
+                                 )
+                               )
+                            )
+</pre></p>
+
+<p>重启lighttpd
+<pre class="prettyprint linenums">
+/etc/init.d/lighttpd restart
+</pre></p>
+
+<p>写一个php测试文件在lighttpd的网站目录里，测试php是否安装成功</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/110" title="通过U盘安装Gentoo minimal iso">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/105" title="iPhone SDK 3.0 MAPKit使用入门（1） 创建一个MKMapView实例">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-06-21</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+      <li>
+  <a href="/categories/#PHP-ref">PHP <span>5</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#centos-ref">centos <span>4</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#eaccelerator-ref">eaccelerator <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#fastcgi-ref">fastcgi <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#lighttpd-ref">lighttpd <span>8</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Linux-ref">Linux <span>30</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#PHP-ref">PHP <span>5</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#tomcat-ref">tomcat <span>3</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

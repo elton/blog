@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Objective-C中的一些特殊的数据类型</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Objective-C中的一些特殊的数据类型 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>在Objective-C中，有一些我们之前并不熟悉但是经常见到的数据类型，比如id、nil、Nil、SEL等等。在很多文章里，我们都见过这些数据类型的介绍，但是都没有说的太清楚。</p>
+
+<p>这篇文章从最底层的定义开始，介绍一下这些类型到底是怎么定义的，这会帮助我们更加深入地了解Objective-C。</p>
+
+<p>原文作者为Greg Miller，文章地址在：
+<a href="http://unixjunkie.blogspot.com/2006/02/nil-and-nil.html">http://unixjunkie.blogspot.com/2006/02/nil-and-nil.html</a></p>
+
+<p>Objective-C中有一些很有趣的数据类型经常会被错误地理解。他们中的大多数都可以在/usr/include/objc/objc.h或者这个目录中的其他头文件中找到。下面是从objc.h中摘录的一段，定义了一些数据类型：
+<pre class="prettyprint linenums">
+// objc.h
+typedef struct objc_class *Class;
+typedef struct objc_object {
+  Class isa;
+} *id;</p>
+
+<p>typedef struct objc_selector  *SEL;
+typedef id (*IMP)(id, SEL, …);
+typedef signed char BOOL;</p>
+
+<p>#define YES             (BOOL)1
+#define NO              (BOOL)0</p>
+
+<p>#ifndef Nil
+  #define Nil 0   /* id of Nil class */
+#endif</p>
+
+<p>#ifndef nil
+  #define nil 0   /* id of Nil instance */
+#endif
+</pre></p>
+
+<p>我们在这里解释一下它们的细节：
+id</p>
+
+<p>id和void *并非完全一样。在上面的代码中，id是指向struct objc_object的一个指针，这个意思基本上是说，id是一个指向任何一个继承了Object（或者NSObject）类的对象。需要注意的是id 是一个指针，所以你在使用id的时候不需要加星号。比如id foo=nil定义了一个nil指针，这个指针指向NSObject的一个任意子类。而id *foo=nil则定义了一个指针，这个指针指向另一个指针，被指向的这个指针指向NSObject的一个子类。
+nil</p>
+
+<p>nil和C语言的NULL相同，在objc/objc.h中定义。nil表示一个Objctive-C对象，这个对象的指针指向空（没有东西就是空）。
+Nil</p>
+
+<p>首字母大写的Nil和nil有一点不一样，Nil定义一个指向空的类（是Class，而不是对象）。
+SEL</p>
+
+<p>这个很有趣。SEL是“selector”的一个类型，表示一个方法的名字。比如以下方法：</p>
+
+<p>-[Foo count] 和 -[Bar count] 使用同一个selector，它们的selector叫做count。</p>
+
+<p>在上面的头文件里我们看到，SEL是指向 struct objc_selector的指针，但是objc_selector是什么呢？那么实际上，你使用GNU Objective-C的运行时间库和NeXT Objective-C的运行运行时间库（Mac OS X使用NeXT的运行时间库）时,它们的定义是不一样的。实际上Mac OSX仅仅将SEL映射为C字符串。比如，我们定义一个Foo的类，这个类带有一个- (int) blah方法，那么以下代码：
+<pre class="prettyprint linenums">
+NSLog (@&ldquo;SEL=%s&rdquo;, @selector(blah));
+</pre>
+会输出为 SEL=blah。</p>
+
+<p>说白了SEL就是返回方法名。
+IMP</p>
+
+<p>从上面的头文件中我们可以看到，IMP定义为 id (*IMP) (id, SEL, …)。这样说来， IMP是一个指向函数的指针，这个被指向的函数包括id(“self”指针)，调用的SEL（方法名），再加上一些其他参数。</p>
+
+<p>说白了IMP就是实现方法。
+Method</p>
+
+<p>在objc/objc-class.h中定义了叫做Method的类型，是这样定义的：
+<pre class="prettyprint linenums">
+typedef struct objc_method *Method;</p>
+
+<p>struct objc_method {
+  SEL method_name;
+  char *method_types;
+  IMP method_imp;
+};
+</pre>
+这个定义看上去包括了我们上面说过的其他类型。也就是说，Method（我们常说的方法）表示一种类型，这种类型与selector和实现(implementation)相关。
+Class</p>
+
+<p>从上文的定义看，Class（类）被定义为一个指向struct objc_class的指针，在objc/objc-class.h中它是这么定义的：
+<pre class="prettyprint linenums">
+struct objc_class {
+  struct objc_class *isa;
+  struct objc_class *super_class;
+  const char *name;
+  ong version;
+  long info;
+  long instance_size;
+  struct objc_ivar_list *ivars;
+  struct objc_method_list **methodLists;
+  struct objc_cache *cache;
+  struct objc_protocol_list *protocols;
+};
+</pre></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/335" title="Snow leopard正式版开包图">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/328" title="Leopard下手工安装ruby,rails和mysql">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-08-26</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Mac-ref">Mac <span>58</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#Mac-ref">Mac <span>27</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#objective-c-ref">objective-c <span>13</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

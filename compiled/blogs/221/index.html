@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>lighttpd配置之代理、负载均衡(mod_proxy)</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>lighttpd配置之代理、负载均衡(mod_proxy) </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>使用proxy可以使lighttpd成为一个代理服务器。例如将java的请求全都转向给jboss来处理
+mod_proxy有三个标签：
+proxy.debug，0或者1. 表示是否启动调试模式。 1表示启动
+proxy.balance，使用负载均衡的模式。可以使“hash”，“round-robin&rdquo;,&ldquo;fair&rdquo;三种模式之一。
+&lsquo;round-robin&rsquo; 交替轮训, &lsquo;hash&rsquo; 根据请求的url产生一个 hash值，来确保同样的请求的url都访问同样的主机
+&lsquo;fair&rsquo; is the normal load-based, passive balancing.</p>
+
+<p>语法结构
+<pre class="prettyprint linenums">
+ ( <extension> =&gt;
+      ( <a href="&quot;host&quot; =&gt; &lt;string&gt; ,
+          &quot;port&quot; =&gt; &lt;integer"> <name> =&gt; </a>,
+        ( &ldquo;host&rdquo; =&gt; <string> ,
+          &ldquo;port&rdquo; =&gt; <integer> )
+      ),
+      <extension> =&gt; &hellip;
+    )
+</pre>
+    *  <extension>: 表示请求url的文件扩展名或者文件前缀 (如果以&rdquo;/&ldquo;开始); 可以是空 (&rdquo;&ldquo;) 表示所有的请求
+    * <name>: 可选名称
+    * &ldquo;host&rdquo;: 被代理的服务器的ip
+    * &ldquo;port&rdquo;: 被代理服务器的端口，默认是80</p>
+
+<p>如：
+<pre class="prettyprint linenums">
+proxy.server = ( &ldquo;.jsp&rdquo; =&gt;
+                       ( (
+                           &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.242&rdquo;,
+                           &ldquo;port&rdquo; =&gt; 8080
+                         ) )
+                     )
+</pre>
+再如：
+<pre class="prettyprint linenums">
+$HTTP[&ldquo;host&rdquo;] == &ldquo;www.domain.me&rdquo; {
+        proxy.server  = ( &ldquo;&rdquo; =&gt;
+        ( (
+                &ldquo;host&rdquo; =&gt; &ldquo;127.0.0.1&rdquo;,
+                &ldquo;port&rdquo;=&gt;&ldquo;8080&rdquo;<br />
+        ) )
+        )
+}
+</pre></p>
+
+<p>负载均衡的例子，例如有8个squid缓存，需要用lighttpd做负载均衡
+<pre class="prettyprint linenums">
+  $HTTP[&ldquo;host&rdquo;] == &ldquo;www.example.org&rdquo; {
+    proxy.balance = &ldquo;hash&rdquo;
+    proxy.server  = ( &ldquo;&rdquo; =&gt; ( ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.10&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.11&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.12&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.13&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.14&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.15&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.16&rdquo; ),
+                              ( &ldquo;host&rdquo; =&gt; &ldquo;10.0.0.17&rdquo; ) ) )
+  }
+</pre>
+当一个服务器宕机后，它上面的请求将被转移给其他设备server</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/229" title="lighttpd配置之用户验证(mod_auth)">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/214" title="lighttpd配置之缓存静态文件(mod_expire)">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-07-12</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#lighttpd-ref">lighttpd <span>8</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#mod_proxy-ref">mod_proxy <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1-ref">负载均衡 <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

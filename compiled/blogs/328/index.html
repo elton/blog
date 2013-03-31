@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Leopard下手工安装ruby,rails和mysql</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Leopard下手工安装ruby,rails和mysql </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <ol>
+<li><p>安装readline
+<a href="ftp://ftp.gnu.org/gnu/readline/">ftp://ftp.gnu.org/gnu/readline/</a>
+<pre class="prettyprint linenums">
+cd readline-6.0
+./configure &ndash;prefix=/usr/local
+make
+sudo make install
+</pre></p></li>
+
+<li><p>安装ruby
+<pre class="prettyprint linenums">
+tar xvjf ruby-1.8.7-p174.tar.bz2
+cd ruby-1.8.7-p174
+./configure &ndash;prefix=/usr/local/ruby &ndash;enable-pthread &ndash;with-readline-dir=/usr/local &ndash;enable-shared
+make
+sudo make install
+sudo make install-doc
+</pre></p></li>
+</ol>
+
+<p>使用ruby -v来确认版本安装正确</p>
+
+<ol>
+<li>安装mysql
+<pre class="prettyprint linenums">
+/configure &ndash;prefix=/usr/local/mysql &ndash;with-extra-charsets=complex &ndash;enable-thread-safe-client &ndash;enable-local-infile &ndash;enable-shared &ndash;with-plugins=max-no-ndb
+make
+sudo make install
+cd /usr/local/mysql
+sudo ./bin/mysql_install_db &ndash;user=mysql
+sudo chown -R mysql ./var/
+</pre></li>
+</ol>
+
+<p>mac os x 是靠 launchd 守护进程运行的, 配置文件用的是 PropertyList (XML 格式), 通过观察发现每10秒检查一次, 发现进程不在就启动.</p>
+
+<p>方法是新建 /Library/LaunchDaemons/com.mysql.mysqld.plist 写入如下内容.
+<pre class="prettyprint linenums">
+&lt;?xml version=&ldquo;1.0&rdquo; encoding=&ldquo;UTF-8&rdquo;?&gt;
+&lt;!DOCTYPE plist PUBLIC &ldquo;-//Apple//DTD PLIST 1.0//EN&rdquo; &ldquo;http://www.apple.com/DTDs/PropertyList-1.0.dtd&rdquo;&gt;
+<plist version="1.0">
+<dict>
+    <key>KeepAlive</key>
+<true />
+    <key>Label</key>
+    <string>com.mysql.mysqld</string>
+    <key>Program</key>
+    <string>/usr/local/mysql/bin/mysqld_safe</string>
+    <key>RunAtLoad</key>
+<true />
+    <key>UserName</key>
+    <string>mysql</string>
+    <key>WorkingDirectory</key>
+    <string>/usr/local/mysql</string>
+    </dict>
+</plist>
+</pre>
+加入守护清单
+sudo launchctl load -w /Library/LaunchDaemons/com.mysql.mysqld.plist</p>
+
+<p>查看清单
+launchctl list</p>
+
+<p>解除守护
+sudo launchctl unload -w /Library/LaunchDaemons/com.mysql.mysqld.plist</p>
+
+<ol>
+<li>安装mysql的c驱动
+<a href="http://rubyforge.org/fsr/download.php/51087/mysql-ruby-2.8.1.tar.gz">http://rubyforge.org/fsr/download.php/51087/mysql-ruby-2.8.1.tar.gz</a>
+<pre class="prettyprint linenums">
+tar xzvf mysql-ruby-2.8.1.tar.gz
+cd mysql-ruby-2.8.1
+ruby extconf.rb &ndash;with-mysql-dir=/usr/local/mysql
+make
+sudo make instal
+</pre></li>
+</ol>
+
+<p>如果出现类似以下的错误
+<pre class="prettyprint linenums">
+checking for mysql_query() in -lmysqlclient&hellip; no
+checking for main() in -lm&hellip; yes
+checking for mysql_query() in -lmysqlclient&hellip; no
+checking for main() in -lz&hellip; yes
+checking for mysql_query() in -lmysqlclient&hellip; no
+checking for main() in -lsocket&hellip; no
+checking for mysql_query() in -lmysqlclient&hellip; no
+checking for main() in -lnsl&hellip; no
+checking for mysql_query() in -lmysqlclient&hellip; no
+checking for main() in -lmygcc&hellip; yes
+checking for mysql_query() in -lmysqlclient&hellip; no
+*** extconf.rb failed ***
+Could not create Makefile due to some reason, probably lack of
+necessary libraries and/or headers.  Check the mkmf.log file for more
+details.  You may need configuration options.
+</pre></p>
+
+<p>就换用
+<pre class="prettyprint linenums">
+sudo ruby extconf.rb &ndash;with-mysql-config
+</pre></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/337" title="Objective-C中的一些特殊的数据类型">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/330" title="no such file to load -- sqlite3问题解决">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-08-23</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Mac-ref">Mac <span>58</span></a>
+</li>
+    
+      <li>
+  <a href="/categories/#Rails-ref">Rails <span>8</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#Mac-ref">Mac <span>27</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#mysql-ref">mysql <span>13</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Rails-ref">Rails <span>9</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#ruby-ref">ruby <span>6</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

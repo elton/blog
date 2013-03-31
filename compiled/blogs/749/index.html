@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>ubuntu 11.04安装OpenCV</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>ubuntu 11.04安装OpenCV </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p><strong>Step 1:安装必要的依赖包</strong>
+<pre class="prettyprint linenums">
+sudo apt-get install build-essential libgtk2.0-dev libjpeg62-dev libtiff4-dev libjasper-dev libopenexr-dev cmake python-dev python-numpy libtbb-dev libeigen2-dev yasm libfaac-dev libopencore-amrnb-dev libopencore-amrwb-dev libtheora-dev libvorbis-dev libxvidcore-dev
+</pre></p>
+
+<p><strong>Step 2:安装ffmpeg</strong>
+<pre class="prettyprint linenums">
+cd ~
+wget <a href="http://ffmpeg.org/releases/ffmpeg-0.7-rc1.tar.gz">http://ffmpeg.org/releases/ffmpeg-0.7-rc1.tar.gz</a>
+tar -xvzf ffmpeg-0.7-rc1.tar.gz
+cd ffmpeg-0.7-rc1
+./configure &ndash;enable-gpl &ndash;enable-version3 &ndash;enable-nonfree &ndash;enable-postproc &ndash;enable-libfaac &ndash;enable-libopencore-amrnb &ndash;enable-libopencore-amrwb &ndash;enable-libtheora &ndash;enable-libvorbis &ndash;enable-libxvid &ndash;enable-x11grab &ndash;enable-swscale &ndash;enable-shared
+make
+sudo make install
+</pre></p>
+
+<p><strong>Step 3:安装OpenCV 2.3</strong>
+<pre class="prettyprint linenums">
+cd ~
+wget <a href="http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.3/OpenCV-2.3.0.tar.bz2">http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/2.3/OpenCV-2.3.0.tar.bz2</a>
+tar -xvf OpenCV-2.3.0.tar.bz2
+cd OpenCV-2.3.0/
+mkdir release
+cd releasecmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_NEW_PYTHON_SUPPORT=ON -D WITH_TBB=ON -D WITH_V4L=OFF -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON -D BUILD_EXAMPLES=ON ..
+make
+sudo make intall
+</pre></p>
+
+<p><strong>Step 4:添加库的路径</strong>
+<pre class="prettyprint linenums">
+sudo vim /etc/ld.so.conf.d/opencv.conf
+</pre>
+加入：
+<pre class="prettyprint linenums">
+/usr/local/lib
+</pre>
+更新系统库
+<pre class="prettyprint linenums">
+$sudo ldconfig
+</pre>
+设置环境变量
+<pre class="prettyprint linenums">
+$sudo vim /etc/environment
+</pre>
+加入
+<pre class="prettyprint linenums">
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
+</pre>
+至此，OpenCV的设置都完成了。</p>
+
+<p><strong>Step 5:测试</strong>
+进入OpenCV源代码目录中的sample
+<pre class="prettyprint linenums">
+cd ~/OpenCV-2.3.0/samples/c
+chmod +x build_all.sh
+./build_all.sh
+</pre>
+然后执行
+<pre class="prettyprint linenums">
+./facedetect &ndash;cascade=&ldquo;/usr/local/share/opencv/haarcascades/haarcascade_frontalface_alt.xml&rdquo; &ndash;scale=1.5 lena.jpg
+</pre>
+你应该可以看到以下图片，说明OpenCV运行正常
+<img alt="" src="http://www.samontab.com/web/wp-content/uploads/2010/03/Screenshot-1.png" title="OpenCV" class="alignnone" width="518" height="538" /></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/756" title="五月蜀地游">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/729" title="register、volatile、restrict 三关键字的用法">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2011-07-27</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#C%2FC%2B%2B-ref">C/C++ <span>5</span></a>
+</li>
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#opencv-ref">opencv <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

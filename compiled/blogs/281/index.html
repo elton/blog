@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Git学习笔记(4) -- 基本命令</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Git学习笔记(4) -- 基本命令 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <h3>git init</h3>
+
+<p>初始化一个本地目录，加入版本管理</p>
+
+<h3>git clone</h3>
+
+<p>克隆一个版本库(repository)到一个新的目录</p>
+
+<p>命令格式
+<pre class="prettyprint linenums">
+git clone [&ndash;template=<template_directory>] [-l] [-s] [&ndash;no-hardlinks] [-q] [-n] [&ndash;bare] [&ndash;mirror] [-o <name>] [-u <upload-pack>] [&ndash;reference <repository>] [&ndash;depth <depth>] [&ndash;] <repository> [<directory>]
+</pre></p>
+
+<p>在clone后, 执行不带参数的git fetch的命令将更新远端的任何branches, 而执行不带参数的git pull的命令将merge远程的master branch到当前master branch</p>
+
+<p><repository> 表示要clone的仓库名称，可以是本地或者远程的。 仓库可以由以下几种表现方式：
+    rsync://host.xz/path/to/repo.git/
+    <a href="http://host.xz[:port]/path/to/repo.git/">http://host.xz[:port]/path/to/repo.git/</a>
+    <a href="https://host.xz[:port]/path/to/repo.git/">https://host.xz[:port]/path/to/repo.git/</a>
+    git://host.xz[:port]/path/to/repo.git/
+    git://host.xz[:port]/~user/path/to/repo.git/
+    ssh://[user@]host.xz[:port]/path/to/repo.git/
+    ssh://[user@]host.xz/path/to/repo.git/
+    ssh://[user@]host.xz/~user/path/to/repo.git/
+    ssh://[user@]host.xz/~/path/to/repo.git</p>
+
+<p>其中ssh是默认协议，所以如果使用ssh协议可以不写ssh的协议名</p>
+
+<p>如果使用本地仓库，可以使用以下路径：
+    /path/to/repo.git/
+    file:///path/to/repo.git/
+使用以上仓库路径，就相当于显式的使用了-l或-local参数</p>
+
+<p><directory> 表示你本地的路径名，会将远程的仓库的内容clone这个目录里面。</p>
+
+<p>参考：
+<a href="http://www.kernel.org/pub/software/scm/git/docs/everyday.html" target="_blank">Everyday GIT With 20 Commands Or So</a></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/277" title="Git学习笔记(2) -- 分支控制(branch)">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/274" title="Git学习笔记(1) -- 创建和修改项目">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-07-22</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#git-ref">git <span>11</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#git-clone-ref">git-clone <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

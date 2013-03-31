@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>将Array、Dictionary等集合类的序列化和反序列化</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>将Array、Dictionary等集合类的序列化和反序列化 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>Objective-C的集合类序列化到文件中或者从文件中反序列化其实很简单，请看下面的示例代码：
+<pre class="prettyprint linenums">
+NSArray *array = [NSArray arrayWithObjects:
+    @&ldquo;Hefeweizen&rdquo;, @&ldquo;IPA&rdquo;, @&ldquo;Pilsner&rdquo;, @&ldquo;Stout&rdquo;, nil];</p>
+
+<p>NSDictionary *dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
+  array, @&ldquo;array&rdquo;, @&ldquo;Stout&rdquo;, @&ldquo;dark&rdquo;, @&ldquo;Hefeweizen&rdquo;, @&ldquo;wheat&rdquo;, @&ldquo;IPA&rdquo;,
+  @&ldquo;hoppy&rdquo;, nil];</p>
+
+<p>// 得到documents directory的路径
+NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
+  NSUserDomainMask, YES);
+if ([paths count] &gt; 0)
+{
+  // Array的保存路径
+  NSString  *arrayPath = [[paths objectAtIndex:0]
+      stringByAppendingPathComponent:@&ldquo;array.out&rdquo;];</p>
+
+<p>// dictionary的保存路径
+  NSString  *dictPath = [[paths objectAtIndex:0]
+      stringByAppendingPathComponent:@&ldquo;dict.out&rdquo;];</p>
+
+<p>// 保存array
+  [array writeToFile:arrayPath atomically:YES];</p>
+
+<p>// 保存dictionary
+  [dictionary writeToFile:dictPath atomically:YES];</p>
+
+<p>// 从文件中读取回来
+  NSArray *arrayFromFile = [NSArray arrayWithContentsOfFile:arrayPath];
+  NSDictionary *dictFromFile = [NSDictionary dictionaryWithContentsOfFile:dictPath];</p>
+
+<p>for (NSString *element in arrayFromFile)
+    NSLog(@&ldquo;Beer: %@&ldquo;, element);</p>
+
+<p>for (NSString *key in dictFromFile)
+    NSLog(@&ldquo;%@ Style: %@&ldquo;, key, [dictionary valueForKey:key]);
+}
+</pre></p>
+
+<p>输出如下：
+<img alt="" src="http://iphonedevelopertips.com/wp-content/uploads/2010/02/screen.png" title="output" class="alignnone" width="512" height="227" /></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/584" title="如何在iPhone图标上加提示符(badge)">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/580" title="创建没有按钮的UIAlertView">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2010-02-15</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#iPhone-ref">iPhone <span>46</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#iPhone-ref">iPhone <span>25</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#NSArray-ref">NSArray <span>3</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#NSDictionary-ref">NSDictionary <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#writeToFile-ref">writeToFile <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

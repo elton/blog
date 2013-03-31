@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>给iPhone程序创建Splash欢迎界面</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>给iPhone程序创建Splash欢迎界面 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>看到很多iPhone的程序都有一个欢迎页面，看到网上有篇文章，参考结合自己的实际做了一个例子。</p>
+
+<h3>官方SDK最简单的方法</h3>
+
+<p>最简单的方法就是做一个全屏的欢迎页的图片，把它命名为Default.png，然后放在Xcode工程的Resource里面。 执行就可以看到你的这个默认图像在程序完全加载之前显示在屏幕上。</p>
+
+<p>但是这个方法有个问题，如果你的程序很快载入了，这个图片会立刻消失，导致还没有看清楚图片上的内容。 而且有些内容虽然程序已经载入了，但是有些程序需要的资源是要从服务器上加载的，所以直接进入程序，用户还是无法使用这个应用。</p>
+
+<h3>自定义model view方法</h3>
+
+<p>这个方法的大体思路就是创建一个model view，在程序载入完成后调用这个model view，显示其中的图片。当你的资源载入完成后，再完全移除这个model view。 具体方法为：
+<ol></p>
+
+<p><li>随便建立一个iPhone的工程，例如叫Splash。</li>
+<li>在SplashAppDelegate.m中，在applicationDidFinishLaunching方法的最后加入:</li></p>
+
+<pre class="prettyprint linenums">
+[viewController showSplash];
+</pre>
+以在加载程序完成后，显示欢迎页
+
+<li>在SplashViewController.h加入以下属性和方法</li>
+<pre class="prettyprint linenums">
+#import <uikit/UIKit.h>
+
+@interface SplashViewController : UIViewController {
+    IBOutlet UIView *modelView;
+
+}
+
+- (void) showSplash;
+- (void) hideSplash;
+
+@end
+</pre>
+其中*modelView就是我们要用到的model view，用来显示splash图片的。 另外两个方法是控制显示和隐藏这个splash的
+
+<li>在SplashController.m加入上面定义的两个方法的实现</li>
+<pre class="prettyprint linenums">
+-(void)showSplash
+{
+    UIViewController *modalViewController = [[UIViewController alloc] init];
+
+    modalViewController.view = modelView;
+
+    [self presentModalViewController:modalViewController animated:NO];
+
+    [self performSelector:@selector(hideSplash) withObject:nil afterDelay:2.0];
+
+}
+
+//hide splash screen
+
+- (void)hideSplash{
+
+    [[self modalViewController] dismissModalViewControllerAnimated:YES];
+
+}
+</pre>
+
+<p><br />
+<li>创建视图</li>
+在Interface builder中给SplashView添加一个view视图，在工具栏里面拖拽一个view视图到Splash VIew中
+[caption id=&ldquo;attachment_120&rdquo; align=&ldquo;alignnone&rdquo; width=&ldquo;272&rdquo; caption=&ldquo;view视图&rdquo;]<a href="http://blog.prosight.me/wp-content/uploads/2009/06/15.png"><img src="http://blog.prosight.me/wp-content/uploads/2009/06/15.png" alt="view视图" title="view视图" width="272" height="60" class="size-full wp-image-120" /></a>[/caption]
+[caption id=&ldquo;attachment_121&rdquo; align=&ldquo;alignnone&rdquo; width=&ldquo;225&rdquo; caption=&ldquo;添加view视图&rdquo;]<a href="http://blog.prosight.me/wp-content/uploads/2009/06/21.png"><img src="http://blog.prosight.me/wp-content/uploads/2009/06/21.png" alt="添加view视图" title="添加view视图" width="225" height="95" class="size-full wp-image-121" /></a>[/caption]</p>
+
+<p>链接File&rsquo;s Owner中的modelview到新建的view上
+[caption id=&ldquo;attachment_122&rdquo; align=&ldquo;alignnone&rdquo; width=&ldquo;281&rdquo; caption=&ldquo;链接modelview到新建的view上&rdquo;]<a href="http://blog.prosight.me/wp-content/uploads/2009/06/32.png"><img src="http://blog.prosight.me/wp-content/uploads/2009/06/32.png" alt="链接modelview到新建的view上" title="链接modelview到新建的view上" width="281" height="57" class="size-full wp-image-122" /></a>[/caption]</p>
+
+<p><br />
+<li>添加imageView到新建的view上</li>
+拖拽一个imageview到刚建立的view中
+[caption id=&ldquo;attachment_123&rdquo; align=&ldquo;alignnone&rdquo; width=&ldquo;272&rdquo; caption=&ldquo;添加imageview&rdquo;]<a href="http://blog.prosight.me/wp-content/uploads/2009/06/42.png"><img src="http://blog.prosight.me/wp-content/uploads/2009/06/42.png" alt="添加imageview" title="添加imageview" width="272" height="55" class="size-full wp-image-123" /></a>[/caption]</p>
+
+<p>选中这个imageview，修改其中的image属性为你指定的图片，我这里选择了之前导入的Default.png
+[caption id=&ldquo;attachment_124&rdquo; align=&ldquo;alignnone&rdquo; width=&ldquo;285&rdquo; caption=&ldquo;指定图片&rdquo;]<a href="http://blog.prosight.me/wp-content/uploads/2009/06/5.png"><img src="http://blog.prosight.me/wp-content/uploads/2009/06/5.png" alt="指定图片" title="指定图片" width="285" height="201" class="size-full wp-image-124" /></a>[/caption]</p>
+
+<p></ol></p>
+
+<p>之后你就可以运行了，应该是2秒后，splash图片自动消失。</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/146" title="XCode 常用快捷键">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/112" title="MySQL 编译参数优化">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-06-23</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#iPhone-ref">iPhone <span>46</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#iPhone-ref">iPhone <span>25</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Mac-ref">Mac <span>27</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#splash-ref">splash <span>2</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

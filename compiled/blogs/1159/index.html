@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Ubuntu使用rsync</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Ubuntu使用rsync </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <ol>
+<li>ubuntu默认没有启动rsync
+<pre class="prettyprint linenums">
+sudo vim /etc/default/rsync</li>
+</ol>
+
+<p>#修改下面，使rsync可用
+RSYNC_ENABLE=true
+</pre></p>
+
+<ol>
+<li>修改rsync.conf配置
+<pre class="prettyprint linenums">
+$sudo cp /usr/share/doc/rsync/examples/rsyncd.conf /etc</li>
+</ol>
+
+<p>#参考配置文件修改如下：</p>
+
+<h1>sample rsyncd.conf configuration file</h1>
+
+<h1>GLOBAL OPTIONS</h1>
+
+<p>motd file=/etc/motd
+log file=/var/log/rsyncd</p>
+
+<h1>for pid file, do not use /var/run/rsync.pid if</h1>
+
+<h1>you are going to run rsync out of the init.d script.</h1>
+
+<h1>The init.d script does its own pid file handling,</h1>
+
+<h1>so omit the &ldquo;pid file&rdquo; line completely in that case.</h1>
+
+<p>pid file=/var/run/rsyncd.pid
+syslog facility=daemon
+#socket options=</p>
+
+<h1>MODULE OPTIONS</h1>
+
+<h1>模块名称</h1>
+
+<p>[rsync]</p>
+
+<pre><code>comment = public archive
+path = /path/to/rsync
+use chroot = yes
+</code></pre>
+
+<h1>max connections=10</h1>
+
+<pre><code>lock file = /var/lock/rsyncd
+</code></pre>
+
+<h1>the default for read only is yes&hellip;</h1>
+
+<pre><code>read only = yes
+list = yes
+uid = nobody
+gid = nogroup
+</code></pre>
+
+<h1>exclude =</h1>
+
+<h1>exclude from =</h1>
+
+<h1>include =</h1>
+
+<h1>include from =</h1>
+
+<p>#该选项指定由空格或逗号分隔的用户名列表，只有这些用户才允许连接该模块。这里的用户和系统用户没有任何关系。如果&rdquo;auth users&rdquo;被设置，那么客户端发出对该模块的连接请求以后会被rsync请求challenged进行验证身份这里使用的 challenge/response认证协议。用户的名和密码以明文方式存放在&rdquo;secrets file&rdquo;选项指定的文件中。默认情况下无需密码就可以连接模块(也就是匿名方式)
+    auth users = backup
+    secrets file = /etc/rsyncd.pass
+    strict modes = yes</p>
+
+<h1>hosts allow =</h1>
+
+<h1>hosts deny =</h1>
+
+<pre><code>ignore errors = no
+ignore nonreadable = yes
+transfer logging = no
+</code></pre>
+
+<h1>log format = %t: host %h (%a) %o %f (%l bytes). Total %b bytes.</h1>
+
+<pre><code>timeout = 600
+refuse options = checksum dry-run
+dont compress = *.gz *.tgz *.zip *.z *.rpm *.deb *.iso *.bz2 *.tbz
+</code></pre>
+
+<p></pre></p>
+
+<ol>
+<li><p>创建一个密码文件
+<pre class="prettyprint linenums">
+$sudo vi /etc/rsyncd.pass
+backup:123456
+$sudo chmod 0600 /etc/rsyncd.pass
+</pre></p></li>
+
+<li><p>启动服务器
+<pre class="prettyprint linenums">
+sudo /etc/init.d/rsync start
+</pre></p></li>
+
+<li><p>配置客户端
+<pre class="prettyprint linenums">
+rsync -vzrtopg &ndash;progress &ndash;delete backup@10.0.0.12::rsync /backup/
+</pre>
+backup就是/etc/rsyncd.pass设置的用户名，rsync是/etc/rsync.conf中的模块名称
+然后输入在syncd.pass中的密码，就完成了一次同步。</p></li>
+
+<li><p>设定定时任务
+如果想每隔一段时间自动同步两个目录，那么可以这么做
+<pre class="prettyprint linenums">
+$sudo vi /etc/rsync.pwd
+#输入/etc/rsyncd.pass中设置的密码
+$crontab -e
+*/5 * * * * rsync &ndash;password-file=/etc/rsync.pwd -vzrtopg &ndash;progress &ndash;delete backup@10.0.0.12::rsync /backup/</p></li>
+</ol>
+
+<p>$/etc/init.d/cron restart
+</pre>
+这样就每隔5分钟就自动同步文件一次了。</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/1162" title="修改MySQL字段类型">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/1154" title="Nginx 在POST提交数据时，报 HTTP411 Content-Length required 错误">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2013-03-03</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#crobtab-ref">crobtab <span>1</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#rsync-ref">rsync <span>2</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

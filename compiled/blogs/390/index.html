@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>在snow leopard上编译Ruby, RubyGems, 和Rails </title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>在snow leopard上编译Ruby, RubyGems, 和Rails  </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>准备：
+<ol>
+<li>Snow Leopard系统</li>
+<li>XCode编译环境，Snow Leopard系统盘上有</li>
+</ol></p>
+
+<p>第一步：设置路径
+<pre class="prettyprint linenums">
+vim ~/.profile
+</pre></p>
+
+<p>在文件最后加上：
+<pre class="prettyprint linenums">
+export PATH=&ldquo;/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:$PATH&rdquo;
+</pre></p>
+
+<p>使新的路径生效
+<pre class="prettyprint linenums">
+source ~/.profile
+</pre></p>
+
+<p>第二步：下载源文件
+<pre class="prettyprint linenums">
+curl -O <a href="ftp://ftp.ruby-lang.org/pub/ruby/1.8/ruby-1.8.7-p174.tar.gz">ftp://ftp.ruby-lang.org/pub/ruby/1.8/ruby-1.8.7-p174.tar.gz</a>
+curl -O <a href="http://files.rubyforge.vm.bytemark.co.uk/rubygems/rubygems-1.3.5.tgz">http://files.rubyforge.vm.bytemark.co.uk/rubygems/rubygems-1.3.5.tgz</a>
+</pre></p>
+
+<p>第三步：编译安装
+安装ruby
+<pre class="prettyprint linenums">
+tar xzvf ruby-1.8.7-p174.tar.gz
+cd ruby-1.8.7-p174
+./configure &ndash;enable-shared &ndash;enable-pthread CFLAGS=-D_XOPEN_SOURCE=1
+make
+sudo make install
+cd ..
+</pre></p>
+
+<p>安装rubygem
+<pre class="prettyprint linenums">
+tar xzvf rubygems-1.3.5.tgz
+cd rubygems-1.3.5
+sudo /usr/local/bin/ruby setup.rb
+cd ..
+</pre></p>
+
+<p>安装rails
+<pre class="prettyprint linenums">
+sudo gem install rails
+</pre></p>
+
+<p>安装ruby的mysql驱动
+<pre class="prettyprint linenums">
+sudo gem install mysql &ndash; &ndash;with-mysql-dir=/usr/local/mysql
+</pre></p>
+
+<p>MySQL使用官方的dmg安装即可。</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/393" title="Winodws 7下启用Administrator账户">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/385" title="Snow Leopard安装PHP+MySQL+Apache">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-10-01</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Mac-ref">Mac <span>58</span></a>
+</li>
+    
+      <li>
+  <a href="/categories/#Rails-ref">Rails <span>8</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#Rails-ref">Rails <span>9</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#ruby-ref">ruby <span>6</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#rubygems-ref">rubygems <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#snow-leopard-ref">snow leopard <span>6</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

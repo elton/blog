@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Gentoo下安装Nginx+php</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>Gentoo下安装Nginx+php </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>使用nginx(engin x)和spawn-fcgi来共同支持php</p>
+
+<h3>安装nginx</h3>
+
+<p><pre class="prettyprint linenums">emerge -av nginx</pre></p>
+
+<h3>安装spawn-fcgi</h3>
+
+<p><pre class="prettyprint linenums">emerge -av spawn-fcgi</pre></p>
+
+<h3>启动spawn-fcgi</h3>
+
+<p><pre class="prettyprint linenums">spawn-fcgi -a 127.0.0.1 -p 9000 -f /usr/bin/php-cgi -C 10</pre>
+a 表示绑定的ip地址
+p 表示端口号
+f 表示fcgi的应用程序，在这里是制定php的cgi版本的程序
+C 表示spawn的child的个数</p>
+
+<p>执行netstat检查spwan-fcgi是否正常启动，可以看到9000端口是否已经开始监听
+<pre class="prettyprint linenums">netstat -tnpl</pre></p>
+
+<h3>配置nginx</h3>
+
+<p><strong>编辑nginx.conf文件</strong>
+<pre class="prettyprint linenums">user nginx nginx;
+worker_processes 8;
+worker_cpu_affinity 00000001 00000010 00000100 00001000 00010000 00100000 01000000 10000000;</p>
+
+<p>error_log /var/log/nginx/error_log info;</p>
+
+<p>#Specifies the value for maximum file descriptors that can be opened by this process.
+worker_rlimit_nofile 51200;</p>
+
+<p>events {
+        worker_connections  8192;
+        use epoll;
+}</p>
+
+<p>http {
+        include         /etc/nginx/mime.types;
+        default_type    application/octet-stream;</p>
+
+<pre><code>    log_format main
+            '$remote_addr - $remote_user [$time_local] '
+            '&quot;$request&quot; $status $bytes_sent '
+            '&quot;$http_referer&quot; &quot;$http_user_agent&quot; '
+            '&quot;$gzip_ratio&quot;';
+
+    client_header_timeout   10m;
+    client_body_timeout     10m;
+    client_max_body_size 50m; #最大允许上传50M的附件
+    send_timeout            10m;
+
+    connection_pool_size            512;
+    client_header_buffer_size       8k;
+    large_client_header_buffers     4 4k;
+    request_pool_size               1024k;
+
+    gzip on;
+    gzip_min_length 1k;
+    gzip_buffers    4 8k;
+    gzip_http_version  1.1;
+    gzip_types   text/plain application/x-javascript text/css application/xml;
+
+    output_buffers  1 1024k;
+    postpone_output 1460;
+
+    sendfile        on;
+    tcp_nopush      on;
+    tcp_nodelay     on;
+
+    keepalive_timeout       75 20;
+    ignore_invalid_headers  on;
+    index index.html;
+
+    include /data/www/vhosts/*.conf;&lt;/pre&gt;
+</code></pre>
+
+<p>其中，worker_processes表示worker进程的个数，一般跟CPU个数相同
+worker_cpu_affinity 00000001 00000010 00000100 00001000 00010000 00100000 01000000 10000000
+表示每个CPU处理一个worker</p>
+
+<p><strong>虚拟主机配置</strong>
+<pre class="prettyprint linenums">server {
+        index           index.htm index.html index.php
+        server_name     blog.domain.com;
+        access_log      /var/log/nginx/domain.access_log main;
+        error_log       /var/log/nginx/domain.error_log info;
+        root            /data/www/domain/htdocs/blog;</p>
+
+<pre><code>    location / {
+            if (-f $request_filename/index.html){
+                    rewrite (.*) $1/index.html break;
+            }
+
+            if (-f $request_filename/index.php){
+                    rewrite (.*) $1/index.php;
+            }
+
+            if (!-f $request_filename){
+                    rewrite (.*) /index.php;
+            }
+    }
+
+    location ~ .*.php$ {
+            include /etc/nginx/fastcgi_params;
+            fastcgi_index index.php;
+            fastcgi_pass  127.0.0.1:9000;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;        }
+
+     location ~ .(htm|html|gif|jpg|jpeg|png|bmp|ico|css|js)$ {
+            expires 30d;
+    }
+</code></pre>
+
+<p>}</pre>
+上面的配置以wordpress的静态url为例
+其中，location ~ .*.php$ 部分是配置php的fcgi
+expires，是设置静态资源的缓存时间
+rewrite部分是设置wordpress静态url时候需要用到的rewrite</p>
+
+<h3>Nginx日常维护</h3>
+
+<p>Nginx 支持下表中的信号：
+信号名                      作用描述
+TERM, INT                快速关闭程序，中止当前正在处理的请求
+QUIT                        处理完当前请求后，关闭程序
+HUP                         重新加载配置，并开启新的工作进程，关闭就的进程，此操作不会中断请求
+USR1                       重新打开日志文件，用于切换日志，例如每天生成一个新的日志文件
+USR2                       平滑升级可执行程序
+WINCH                    从容关闭工作进程</p>
+
+<p>如要重新加载配置文件就使用如下命令
+<pre class="prettyprint linenums">#kill -HUP <pid></pre>
+pid是nginx的进称号，通过netstat -tnpl可以查到</p>
+
+<h3>Nginx 监控</h3>
+
+<p>通过在配置文件中加入：
+<pre class="prettyprint linenums">location ~ ^/status/ {
+        stub_status on; #Nginx 状态监控配置
+        access_log off;
+     }</pre>
+就可以使用http://yourdomain.com/stauts监控nginx的状态。
+可以看到类似这样的信息
+<pre class="prettyprint linenums">Active connections: 70
+server accepts handled requests
+ 14553819 14553819 19239266
+Reading: 0 Writing: 3 Waiting: 67</pre>
+<ul>
+    <li>active connections – 当前 Nginx 正处理的活动连接数.</li>
+    <li>server accepts handled requests &ndash; 总共处理了 14553819 个连接 , 成功创建 14553819 次握手 ( 证明中间没有失败的 ), 总共处理了 19239266 个请求 ( 平均每次握手处理了 1.3 个数据请求 )</li>
+    <li>reading &ndash; nginx 读取到客户端的 Header 信息数</li>
+    <li>writing &ndash; nginx 返回给客户端的 Header 信息数。</li>
+    <li>waiting &ndash; 开启 keep-alive 的情况下，这个值等于 active - (reading + writing)，意思就是 Nginx 已经处理完正在等候下一次请求指令的驻留连接。</li>
+</ul>
+参考：
+<a href="http://www.ibm.com/developerworks/cn/web/wa-lo-nginx/index.html">http://www.ibm.com/developerworks/cn/web/wa-lo-nginx/index.html</a>
+<a href="http://wiki.nginx.org/NginxChs">http://wiki.nginx.org/NginxChs</a>
+<a href="http://blog.chinaunix.net/u/12909/showart_1831422.html">http://blog.chinaunix.net/u/12909/showart_1831422.html</a></p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/258" title="Gentoo安装SNMP &amp; MRTG 本机监控">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/243" title="Gentoo下的ARP防御">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-07-19</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+      <li>
+  <a href="/categories/#PHP-ref">PHP <span>5</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#gentoo-ref">gentoo <span>14</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#nginx-ref">nginx <span>5</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#PHP-ref">PHP <span>5</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#wordpress-ref">wordpress <span>2</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

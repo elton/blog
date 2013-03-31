@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>在JBOSS服务器上使用Myfaces的JSF实现</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>在JBOSS服务器上使用Myfaces的JSF实现 </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>JBOSS AS服务器默认使用的JSF实现是SUN的RI，要把他替换成Myfaces需要：</p>
+
+<p>1.移除JBoss服务器的现有的JSF实现RI</p>
+
+<p>修改JBOSS_HOME下的server&lt; config-name&gt;deployjboss-web.deployerconfweb.xml文件，把JSF的监听器注掉，并删除jboss-web.deployer 目录下的jsf-libs文件夹
+<pre class="prettyprint linenums">
+&lt;!&ndash;
+<context-param>
+    <param-name>com.sun.faces.injectionProvider</param-name>
+    <param-value>org.jboss.web.jsf.integration.injection.JBossInjectionProvider</param-value>
+  </context-param>
+&ndash;&gt;
+&lt;!&ndash; Comment/Remove this &ndash;&gt;<br />
+&lt;!&ndash; Configures JSF for a web application if the javax.faces.webapp.FacesServlet is declared &ndash;&gt;<br />
+&lt;!&ndash; in web.xml.                                                                             &ndash;&gt;<br />
+&lt;!&ndash;<br />
+<listener><br />
+  <listener-class>org.jboss.web.jsf.integration.config.JBossJSFConfigureListener</listener-class><br />
+</listener><br />
+&ndash;&gt;<br />
+&lt;!&ndash; Comment/Remove this &ndash;&gt;<br />
+&lt;!&ndash; Listens to all web app lifecycle events so that @PreDestroy can be called on &ndash;&gt;<br />
+&lt;!&ndash; JSF managed beans that go out of scope.  You can comment this out if you     &ndash;&gt;<br />
+&lt;!&ndash; don&rsquo;t use JSF or you don&rsquo;t use annotations on your managed beans.            &ndash;&gt;<br />
+&lt;!&ndash;<br />
+<listener><br />
+  <listener-class>com.sun.faces.application.WebappLifecycleListener</listener-class><br />
+</listener><br />
+&ndash;&gt;<br />
+</pre></p>
+
+<p>2.安装Myfaces的JSF实现</p>
+
+<p>在jboss-web.deployer 目录下新建myfaces-libs文件夹，并把myfaces的实现jar包拷贝到里面
+<pre class="prettyprint linenums">
+commons-beanutils.jar<br />
+commons-digester-1.6.jar<br />
+commons-el.jar<br />
+commons-lang-2.1.jar<br />
+myfaces-api.jar<br />
+myfaces-impl.jar
+</pre></p>
+
+<p>在jboss-web.deployerconfweb.xml中添加myfaces的监听器
+<pre class="prettyprint linenums">
+<listener><br />
+  <listener-class>org.apache.myfaces.webapp.StartupServletContextListener</listener-class><br />
+</listener>
+</pre></p>
+
+<p>3.修改jboss-web.deployerconfweb.xml中JSF相关的init-param参数，替换
+<pre class="prettyprint linenums">
+<init-param><br />
+  <description>JSF standard tlds</description><br />
+  <param-name>tagLibJar0</param-name><br />
+  <param-value>jsf-libs/jsf-impl.jar</param-value><br />
+</init-param><br />
+<init-param><br />
+  <description>JSTL standard tlds</description><br />
+  <param-name>tagLibJar1</param-name><br />
+  <param-value>jstl.jar</param-value><br />
+</init-param>
+</pre>
+为
+<pre class="prettyprint linenums">
+<init-param><br />
+ <description>MyFaces tlds</description><br />
+ <param-name>tagLibJar0</param-name><br />
+ <param-value>myfaces-libs/myfaces-impl.jar</param-value><br />
+</init-param>
+</pre>
+现在启动JBOSS AS就可以看到加载的已经加载了Myfaces的JSF。可以在JBOSS服务器上使用Myfaces的JSF实现了。</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/560" title="It appears the JSP version of the container is older than 2.1 and unable to locate the EL RI expression factory, com.sun.el.ExpressionFactoryImpl.  ">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/556" title="Oracle导入数据">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2010-01-16</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Java-ref">Java <span>19</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#jboss-ref">jboss <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#jsf-ref">jsf <span>2</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#myfaces-ref">myfaces <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CentOS 5.3安装Nagios</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>CentOS 5.3安装Nagios </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <hr />
+
+<p>安装软件</p>
+
+<hr />
+
+<p>确保以下包都被安装</p>
+
+<p>yum install gcc
+yum install glibc glibc-common
+yum install gd gd-devel</p>
+
+<p>成为root用户
+su -l</p>
+
+<p>创建Nagios用户
+/usr/sbin/useradd -m nagios
+passwd nagios</p>
+
+<p>创建Nagios用户组并把nagios用户和apache用户加入到这个组里</p>
+
+<p>/usr/sbin/groupadd nagcmd
+/usr/sbin/usermod -a -G nagcmd nagios
+/usr/sbin/usermod -a -G nagcmd apache</p>
+
+<p>创建下载目录
+mkdir ~/downloads
+cd ~/downloads</p>
+
+<p>下载文件
+wget <a href="http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0.6.tar.gz">http://osdn.dl.sourceforge.net/sourceforge/nagios/nagios-3.0.6.tar.gz</a>
+wget <a href="http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.11.tar.gz">http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.11.tar.gz</a></p>
+
+<p>解压源文件
+cd ~/downloads
+tar xzf nagios-3.0.6.tar.gz
+cd nagios-3.0.6</p>
+
+<p>运行配置脚本，指定用户组
+./configure &ndash;with-command-group=nagcmd &ndash;with-httpd-conf=/usr/local/apache/conf</p>
+
+<p>编译
+make all</p>
+
+<p>安装
+make install
+make install-init
+make install-config
+make install-commandmode</p>
+
+<p>一些配置可以在这里修改</p>
+
+<p>vi /usr/local/nagios/etc/objects/contacts.cfg</p>
+
+<p>安装Apache的web配置文件到Apache的配置目录.
+make install-webconf</p>
+
+<p>创建web界面管理员
+/usr/local/apache/bin/htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin</p>
+
+<p>重启apache使配置生效
+/usr/local/apache/bin/apachectl restart</p>
+
+<hr />
+
+<p>安装插件</p>
+
+<hr />
+
+<p>cd ~/downloads
+tar xzf nagios-plugins-1.4.11.tar.gz
+cd nagios-plugins-1.4.11</p>
+
+<p>配置编译
+./configure &ndash;with-nagios-user=nagios &ndash;with-nagios-group=nagios
+make
+make install</p>
+
+<p>如果make的时候出现openssl的错误，需要在make的时候加上
+make LDFLAGS+=-ldl（http://yahoon.blog.51cto.com/13184/43020）</p>
+
+<p>将Nagios加到系统启动列表中
+chkconfig &ndash;add nagios
+chkconfig nagios on</p>
+
+<p>验证配置文件正确性
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg</p>
+
+<p>如果没有问题，就启动
+service nagios start</p>
+
+<p>然后通过
+<a href="http://localhost/nagios就可以访问了">http://localhost/nagios就可以访问了</a></p>
+
+<hr />
+
+<p>安装NRPE</p>
+
+<hr />
+
+<p>监控主机需要安装check_nrpe，被监控机器需要安装nrpe。他们需要通SSH连接，使用5666端口通信</p>
+
+<p>被监控机器安装</p>
+
+<p>创建帐号
+/usr/sbin/useradd nagios
+passwd nagios</p>
+
+<p>安装Nagios插件
+wget <a href="http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.13.tar.gz">http://osdn.dl.sourceforge.net/sourceforge/nagiosplug/nagios-plugins-1.4.13.tar.gz</a></p>
+
+<p>tar xzf nagios-plugins-1.4.13.tar.gz
+cd nagios-plugins-1.4.13</p>
+
+<p>./configure
+make
+make install</p>
+
+<p>yum install xinetd</p>
+
+<p>wget <a href="http://osdn.dl.sourceforge.net/sourceforge/nagios/nrpe-2.12.tar.gz">http://osdn.dl.sourceforge.net/sourceforge/nagios/nrpe-2.12.tar.gz</a></p>
+
+<p>tar xzf nrpe-2.8.tar.gz
+cd nrpe-2.8</p>
+
+<p>./configure
+make all</p>
+
+<p>安装插件（为了测试），守候进程和示例配置文件
+make install-plugin
+make install-daemon
+make install-daemon-config</p>
+
+<p>安装xinetd的NRPE服务
+make install-xinetd</p>
+
+<p>编辑 /etc/xinetd.d/nrpe 文件在 only_from 后加入监控主机的ip.
+only_from = 127.0.0.1 &lt;nagios_ip_address&gt;</p>
+
+<p>在/etc/services加入下面的条目</p>
+
+<p>nrpe         5666/tcp             # NRPE</p>
+
+<p>重启Xinetd</p>
+
+<p>service xinetd restart</p>
+
+<p>本地测试
+netstat -at | grep nrpe
+会显示
+tcp             0             0 <em>:nrpe     *:</em>     LISTEN
+/usr/local/nagios/libexec/check_nrpe -H localhost
+会显示nrpe的版本信息</p>
+
+<p>打开防火墙</p>
+
+<p>iptables -I RH-Firewall-1-INPUT -p tcp -m tcp –dport 5666 -j ACCEPT</p>
+
+<p>service iptables save</p>
+
+<p>监控主机安装</p>
+
+<p>安装 check_nrpe 插件</p>
+
+<p>wget <a href="http://osdn.dl.sourceforge.net/sourceforge/nagios/nrpe-2.12.tar.gz">http://osdn.dl.sourceforge.net/sourceforge/nagios/nrpe-2.12.tar.gz</a></p>
+
+<p>tar xzf nrpe-2.12.tar.gz
+cd nrpe-2.12</p>
+
+<p>./configure
+make all</p>
+
+<p>make install-plugin</p>
+
+<p>测试NRPE守候进程
+/usr/local/nagios/libexec/check_nrpe -H 192.168.0.1（被监控端的ip）
+将会返回被监控端的nrpe版本信息</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/17" title="Gentoo 启动SSH">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/5" title="Mac 下基于ruby 1.9安装Rails">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-06-02</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Linux-ref">Linux <span>79</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#centos-ref">centos <span>4</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Linux-ref">Linux <span>30</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#nagios-ref">nagios <span>1</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+title : Elton's Blog
+tagline: Blog Tagline
+author :
+  name : Elton Zheng
+  email : elton.zheng.sh@gmail.com
+  github : elton
+  twitter : username
+  feedburner : feedname
+
+navigation :
+  - archive.html
+  - tags.html
+  - categories.html
+  - pages.html
+  - about.md
+  

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>EJB3入门（2）Stateful Session bean</title>
+  
+    <meta name="author" content="Elton Zheng">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/twitter/stylesheets/bootstrap.min.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/stylesheets/style.css" type="text/css" rel="stylesheet" media="all">
+<link href="/assets/twitter/widgets/google_prettify/stylesheets/twitter-bootstrap.css" type="text/css" rel="stylesheet" media="all">
+ 
+
+    <!-- Le fav and touch icons -->
+  <!-- Update these with your own images
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+  -->
+  </head>
+
+  <body>
+
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="/">Elton&#39;s Blog</a>
+          <ul class="nav">
+            
+              
+
+
+  <li><a href="/archive">Archive</a></li>
+
+
+            
+              
+
+
+  <li><a href="/tags">Tags</a></li>
+
+
+            
+              
+
+
+  <li><a href="/categories">Categories</a></li>
+
+
+            
+              
+
+
+  <li><a href="/pages">Pages</a></li>
+
+
+            
+              
+
+
+  <li><a href="/about">About Me</a></li>
+
+
+            
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="content">
+        <div class="page-header">
+  <h1>EJB3入门（2）Stateful Session bean </h1>
+</div>
+
+<div class="row">
+  <div class="span8">
+    <p>有了上节无状态session bean的基础，这回试着做一个有状态的session bean。 有状态的session bean语法上跟无状态session bean只有一个元标记的区别，把实现类里面的@Stateless替换成@Stateful就可以了。</p>
+
+<p>如果使用Stateful Sessionbean，客户端在使用同一个SessionBean对象实例时可以保存状态，也就是说，在多次引用该对象时实际上在服务端是使用的同一个Sessionbean的对象实例，而无状态sessionbean使用了不同的sessionbean对象实例，因此，是无法保存状态的。</p>
+
+<p>最直接的例子就是购物车，购物车是跟着用户来的，需要保持状态，否则人家挑好的东西都不见了。</p>
+
+<p>先写一个接口：
+<pre class="prettyprint linenums">
+package me.prosight;</p>
+
+<p>import java.util.List;
+import javax.ejb.Remote;</p>
+
+<p>@Remote
+public interface ShoppingCartRemote {</p>
+
+<pre><code>public void addProduct(String name);
+public List&lt;string&gt; getAllProducts();
+</code></pre>
+
+<p>}
+</pre></p>
+
+<p>再写一个实现类：
+<pre class="prettyprint linenums">
+package me.prosight;</p>
+
+<p>import java.util.ArrayList;
+import java.util.List;</p>
+
+<p>import javax.ejb.Stateful;</p>
+
+<p>@Stateful
+public class ShoppingCartBean implements ShoppingCartRemote {</p>
+
+<pre><code>private List&lt;string&gt; shoppingCart = new ArrayList&lt;string&gt;();
+
+@Override
+public void addProduct(String name) {
+    shoppingCart.add(name);
+
+}
+
+@Override
+public List&lt;string&gt; getAllProducts() {
+    return shoppingCart;
+}
+</code></pre>
+
+<p>}
+</pre></p>
+
+<p>最后再写一个测试类
+<pre class="prettyprint linenums">
+package me.prosight;</p>
+
+<p>import java.util.List;</p>
+
+<p>import javax.naming.InitialContext;
+import javax.naming.NamingException;</p>
+
+<p>public class Client {</p>
+
+<pre><code>public static void main(String[] args) throws NamingException {
+    InitialContext ctx = new InitialContext();
+    ShoppingCartRemote cart = (ShoppingCartRemote) ctx.lookup(&quot;ShoppingCartBean/remote&quot;);
+    cart.addProduct(&quot;Apple&quot;);
+    cart.addProduct(&quot;IBM&quot;);
+    cart.addProduct(&quot;Dell&quot;);
+
+    List&lt;string&gt; products = cart.getAllProducts();
+    for (String product : products)
+    {
+        System.out.println(product);
+    }
+
+}
+</code></pre>
+
+<p>}
+</pre>
+在客户端调用时，需要将ShoppingCart接口复制到客户端，当然，@Remote可以去掉。别忘了引用JBoss安装目录中的client目录中的jar文件。客户端仍然使用了jndi.properties文件来配置相应的信息，该文件位于源代码目录下，内容如下;
+<pre class="prettyprint linenums">
+java.naming.factory.initial=org.jnp.interfaces.NamingContextFactory
+java.naming.provider.url=localhost
+</pre>
+在执行上面的程序后，将输出如下的信息:
+<pre class="prettyprint linenums">
+Apple
+IBM
+Dell
+</pre>
+要注意的是，需要使用同一个sessionbean对象实例（cart）才能保存状态。如果在web应用程序中，需要将cart对象保存在Session中，这样在同一个会话中的用户就可以使用该购物车对象了。</p>
+
+    <hr>
+    <div class="pagination">
+      <ul>
+        <ul>
+          
+            <li class="prev"><a href="/blogs/70" title="Google MAP API 初步尝试">&larr; Previous</a></li>
+          
+          
+
+            <li><a href="/archive">Archive</a></li>
+
+          
+            <li class="next"><a href="/blogs/48" title="SSH的快捷方式">Next &rarr;</a></li>
+          
+          
+        </ul>
+      </ul>
+    </div>
+    <hr>
+    
+<div id="disqus_thread"></div>
+<script>
+    var disqus_developer = 1;
+    var disqus_shortname = 'eltonzheng'; // required: replace example with your forum shortname
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+  </div>
+  
+  <div class="span4">
+    <h4>Published</h4>
+    <div class="date"><span>2009-06-16</span></div>
+    <br>
+    <h4>Categories</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/categories/#Java-ref">Java <span>19</span></a>
+</li>
+    
+    </ul>
+    <br>
+    <h4>Tags</h4>
+    <ul class="tag_box">
+    
+      <li>
+  <a href="/tags/#ejb3-ref">ejb3 <span>4</span></a>
+</li>
+    
+      <li>
+  <a href="/tags/#Java-ref">Java <span>12</span></a>
+</li>
+    
+    </ul>
+  </div>
+</div>
+
+      </div>
+
+      <footer>
+        <p>&copy; Elton Zheng 2013 
+          with help from <a href="http://github.com/wendal/gor" target="_blank" title="Gor -- Fast Blog">Gor</a>
+          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+		  and Idea from <a href="http://ruhoh.com" target="_blank" title="The Definitive Technical Blogging Framework">ruhoh</a>
+        </p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    
+<script src="http://cdnjs.cloudflare.com/ajax/libs/prettify/188.0.0/prettify.js"></script>
+<script>
+  var pres = document.getElementsByTagName("pre");
+  for (var i=0; i < pres.length; ++i) {
+    pres[i].className = "prettyprint linenums";
+  }
+  prettyPrint();
+</script>
+
+    
+<script>
+    var _gaq=[['_setAccount','UA-8990410-1'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+</script>
+  </body>
+</html>
