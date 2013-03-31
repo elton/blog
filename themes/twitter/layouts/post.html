@@ -35,6 +35,20 @@ layout : default
   </div>
   
   <div class="span4">
+    <ul class="tag_box">
+      <!-- Baidu Button BEGIN -->
+      <div id="bdshare" class="bdshare_b" style="line-height: 12px;">
+      <img src="http://bdimg.share.baidu.com/static/images/type-button-1.jpg?cdnversion=20120831" />
+      <a class="shareCount"></a>
+      </div>
+      <script type="text/javascript" id="bdshare_js" data="type=button&amp;uid=6649475" ></script>
+      <script type="text/javascript" id="bdshell_js"></script>
+      <script type="text/javascript">
+      document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000);
+      </script>
+      <!-- Baidu Button END -->
+    </ul>
+    <br>
     <h4>Published</h4>
     <div class="date"><span>{{ page.date }}</span></div>
     <br>
@@ -50,6 +64,22 @@ layout : default
     {{# page.tags?to_tags }}
       {{> tags_list }}
     {{/ page.tags?to_tags }}
+    </ul>
+    <br>
+    <h4>Photos</h4>
+    <ul class="tag_box">
+      <!-- Start of Flickr Badge -->
+      <style type="text/css" media="screen">
+        div#flickr a{
+          display: inline-block;
+          border: 1px soild #333;
+          margin-bottom: 2px;
+        }
+      </style>
+      <div id="flickr">
+        <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=3&display=random&size=m&layout=v&source=user&user=57362334%40N00"></script>
+      </div>
+      <!-- End of Flickr Badge -->
     </ul>
   </div>
 </div>
