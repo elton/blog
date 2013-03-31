@@ -1,4 +1,4 @@
-Visit http://github.com/wendal/gor
+Visit http://blog.prosight.me
 
 ## License
 
