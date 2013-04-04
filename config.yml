@@ -2,7 +2,7 @@
 # Usage: http://ruhoh.com/usage/configure/ 
 
 RuhohSpec: '1.0'
-theme : twitter
+theme : elton
 production_url : http://blog.prosight.me
 
 posts:

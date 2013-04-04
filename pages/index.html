@@ -1,18 +1,64 @@
 ---
-title: Elton's Blog 移动开发，敏捷web开发，Linux服务器部署维护，web UI和UE设计，摄影
+title:EltonZheng's Blog
 description:移动开发，敏捷web开发，Linux服务器部署维护，web UI和UE设计，摄影
 ---
-
-<h2>最近更新</h2>
-
+<hr>
+<section class="content full">
 {{# posts_latest }}
 <div class="post">
-  <h3 class="title"><a href="{{url}}">{{title}}</a> <span class="date">{{ date }}</span></h3>
-
-  {{{ summary }}}
-
-  <div class="more">
-    <a href="{{url}}" class="btn">阅读全文..</a>
-  </div>
+    <div class="post-content">
+        <h2><a href="{{url}}">{{title}}</a></h2>
+        <div class="meta"> <span class="date">{{ date }}</span> <span class="tags"><a href="#">tips</a>, <a href="#">tricks</a></span> <span class="comments"><a href="#">3 Comments</a></span> </div>
+        {{{ summary }}}
+        <a href="{{url}}" class="button red">Continue reading →</a>
+    </div>
+    <div class="clear"></div>
 </div>
 {{/ posts_latest }}
+</section>
+
+<!-- Begin Sidebar -->
+<aside class="sidebar">
+
+    <div class="sidebox widget">
+        <h3>Search</h3>
+
+        <form class="searchform" method="get">
+            <input type="text" id="s2" name="s" value="type and hit enter" onfocus="this.value=''"
+                   onblur="this.value='type and hit enter'"/>
+        </form>
+    </div>
+    <div class="sidebox widget">
+        <style type="text/css" media="screen">
+        div.follow_btn_line a{
+          margin: 0;
+          padding: 0;
+        }
+        .WB_follow_ex .follow_text {
+          width: 40px;
+        }
+      </style>
+      <wb:follow-button uid="1666313734" type="red_2" width="136" height="24" ></wb:follow-button>
+    </div>
+    <div class="sidebox widget">
+      <h3>微信 - 互联网技术分享(eltonblog)</h3>
+      <img src="{{urls.media}}/qrcode_for_gh_10e86e6c2d34_258.jpg" width="200" height="200"></img>
+    </div>
+    <div class="sidebox widget">
+      <h3>Photos</h3>
+      <!-- Start of Flickr Badge -->
+      <style type="text/css" media="screen">
+        div#flickr a{
+          display: inline-block;
+          border: 1px soild #333;
+          margin-bottom: 2px;
+        }
+      </style>
+      <div id="flickr">
+        <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=3&display=random&size=m&layout=v&source=user&user=57362334%40N00"></script>
+      </div>
+      <!-- End of Flickr Badge -->
+    </div>
+
+</aside>
+<!-- End Sidebar -->
