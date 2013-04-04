@@ -99,7 +99,7 @@ input, textarea {
 /*	GENERAL
 /*-----------------------------------------------------------------------------------*/
 body {
-    background: #eaeaea;
+    background: url(/assets/elton/media/bg.jpg) repeat fixed;
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
     font-family: 'Source Sans Pro', Arial, sans-serif;
@@ -126,7 +126,7 @@ h5,
 h6 {
     font-weight: 700;
     color: #616161;
-    margin-bottom: 20px;
+    margin-bottom: 10px; 
 }
 h1 {
     font-size: 24px;
@@ -402,7 +402,7 @@ pre {
 /*	STUCTURE
 /*-----------------------------------------------------------------------------------*/
 .top-wrapper {
-    background: #28343c;
+    background: #403635;
     color: #FFF;
 }
 .light-wrapper {
@@ -429,7 +429,7 @@ pre {
     padding-bottom: 241px
 }
 header .logo {
-    width:227px;
+    width:199px;
     height: 55px;
     background-image: url(/assets/elton/media/logo.png); 
     float: left;
@@ -438,7 +438,7 @@ header .logo {
 @media only screen and (-Webkit-min-device-pixel-ratio: 1.5), only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (min-device-pixel-ratio: 1.5) { 
     header .logo {
         background-image: url(/assets/elton/media/logo@2x.png); 
-        background-size: 227px 55px;
+        background-size: 199px 55px;
     }
 }
 
@@ -470,6 +470,9 @@ blockquote p {
 .wrapper .inner.light {
     background: #FFF;
     border-bottom: 1px solid rgba(0,0,0,0.07);
+    -webkit-border-radius: 15px 15px 0 0;
+    -moz-border-radius: 15px 15px 0 0;
+　　border-radius: 15px 15px 0 0;
 }
 .wrapper .inner.dark {
     background: #f9f9f9;
@@ -477,7 +480,7 @@ blockquote p {
 }
 footer {
     width: 1120px;
-    background: #28343c;
+    background: url(/assets/elton/media/featbg.png) repeat-x;
     margin: 0 auto;
     color: #d1d1d1;
 }
@@ -499,7 +502,7 @@ footer a:hover,
 }
 .subfooter {
     width: 1120px;
-    background: #253038;
+    background: #403635;
     margin: 0 auto 50px;
     color: #d1d1d1;
 }
@@ -1327,7 +1330,7 @@ footer .widget em:before {
 }
 i.contact {
     margin-right: 8px;
-    color: #ca6666;
+    color: #ccc;
 }
 .subfooter p {
     float: left;
@@ -1996,7 +1999,7 @@ ul.latest li .text p {
 .content .post {
     clear: both;
     border-bottom: 1px solid rgba(0,0,0,0.15);
-    padding-bottom: 50px;
+    /*padding-bottom: 50px;*/
     margin-bottom: 50px;
     position: relative;
 }
@@ -2170,8 +2173,8 @@ h1.page-title {
 }
 .sidebox {
     border-top: 1px solid rgba(0,0,0,0.15);
-    padding-top: 50px;
-    margin-top: 30px;
+    padding-top: 25px;
+    margin-top: 20px;
     overflow: hidden;
 }
 .sidebox h3 {
