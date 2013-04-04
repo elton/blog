@@ -1,0 +1,105 @@
+---
+layout : default
+---
+<div class="page-intro clearfix">
+    <h1 class="page-title alignleft">{{ page.title }} {{# page.tagline }}
+        <small>{{ . }}</small>
+        {{/ page.tagline }}
+    </h1>
+    <div class="navigation alignright">
+        {{# page?previous }}
+        <a href="{{ url }}" title="{{ title }}"><i class='icon-left-open-1'></i></a>
+        {{/ page?previous }}
+        {{^ page?previous }}
+        {{/ page?previous }}
+
+        {{# page?next }}
+        <a href="{{ url }}" title="{{ title }}"><i class='icon-right-open-1'></i></a>
+        {{/ page?next }}
+        {{^ page?next }}
+        {{/ page?next }}
+    </div>
+</div>
+
+<section class="content full">
+    <div class="post">
+        <div class="post-content">
+            {{{ content }}}
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div id="comments">
+        {{{ comments }}}
+    </div>
+</section>
+
+<!-- Begin Sidebar -->
+<aside class="sidebar">
+    <div class="sidebox widget">
+        <h3>Published</h3>
+
+        <div class="date"><span class="lite1">{{ page.date }}</span></div>
+
+    </div>
+
+    <div class="sidebox widget">
+        <h3>Categories</h3>
+        <ul class="list">
+            {{# page.categories?to_categories }}
+            {{> categories_list }}
+            {{/ page.categories?to_categories }}
+        </ul>
+    </div>
+
+    <div class="sidebox widget">
+        <h3>Tags</h3>
+        <ul class="list">
+            {{# page.tags?to_tags }}
+            {{> tags_list }}
+            {{/ page.tags?to_tags }}
+        </ul>
+    </div>
+
+    <div class="sidebox widget">
+        <h3>Search</h3>
+
+        <form class="searchform" method="get">
+            <input type="text" id="s2" name="s" value="type and hit enter" onfocus="this.value=''"
+                   onblur="this.value='type and hit enter'"/>
+        </form>
+    </div>
+    <div class="sidebox widget">
+        <style type="text/css" media="screen">
+        div.follow_btn_line a{
+          margin: 0;
+          padding: 0;
+        }
+        .WB_follow_ex .follow_text {
+          width: 40px;
+        }
+      </style>
+      <wb:follow-button uid="1666313734" type="red_2" width="136" height="24" ></wb:follow-button>
+    </div>
+    <div class="sidebox widget">
+      <h3>微信 - 互联网技术分享(eltonblog)</h3>
+      <img src="{{urls.media}}/qrcode_for_gh_10e86e6c2d34_258.jpg" width="200" height="200"></img>
+    </div>
+    <div class="sidebox widget">
+      <h3>Photos</h3>
+      <!-- Start of Flickr Badge -->
+      <style type="text/css" media="screen">
+        div#flickr a{
+          display: inline-block;
+          border: 1px soild #333;
+          margin-bottom: 2px;
+        }
+      </style>
+      <div id="flickr">
+        <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=3&display=random&size=m&layout=v&source=user&user=57362334%40N00"></script>
+      </div>
+      <!-- End of Flickr Badge -->
+    </div>
+
+</aside>
+<!-- End Sidebar -->
