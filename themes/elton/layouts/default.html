@@ -97,9 +97,13 @@
 
     <!-- Begin Sub Footer Wrapper -->
     <div class="subfooter">
+        <script type="text/javascript">
+        var nowd = new Date();
+        var yf = nowd.getFullYear();                                     
+        </script>
         <!-- Begin Inner -->
         <div class="inner">
-            <p>&copy; {{ site.author.name }} 2013
+            <p>Copyright &copy; 2009- <script type="text/javascript">document.write(yf);</script> <a href="http://blog.prosight.me">{{ site.author.name }}</a> 
                 build with <a>Golang</a> <a href="https://github.com/wendal/gor" target="_blank">Gor</a>
 
             <ul class="social">
