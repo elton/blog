@@ -479,7 +479,7 @@ blockquote p {
     border-bottom: 1px solid rgba(0,0,0,0.07);
 }
 footer {
-    width: 1120px;
+    /*width: 1120px;*/
     background: url(/assets/elton/media/featbg.png) repeat-x;
     margin: 0 auto;
     color: #d1d1d1;
@@ -501,9 +501,9 @@ footer a:hover,
     color: #ca6666
 }
 .subfooter {
-    width: 1120px;
+    /*width: 1120px;*/
     background: #403635;
-    margin: 0 auto 50px;
+    margin: 0 auto;
     color: #d1d1d1;
 }
 footer .inner {
