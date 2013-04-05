@@ -1272,11 +1272,7 @@ footer .inner {
 /*-----------------------------------------------------------------------------------*/
 /*	FOOTER
 /*-----------------------------------------------------------------------------------*/
-.widget .post-list li {
-    border-top: 1px solid #404a51;
-    padding-top: 20px;
-    margin-top: 20px;
-}
+
 .widget .post-list li:first-child {
     border-top: none;
     padding: 0;
