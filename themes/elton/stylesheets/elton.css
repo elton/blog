@@ -399,6 +399,14 @@ pre {
     border: 1px solid #e7e7e7;
     word-wrap: break-word;
 }
+
+img.artwork{
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+　　border-radius: 15px;
+}
+
+
 /*-----------------------------------------------------------------------------------*/
 /*	STUCTURE
 /*-----------------------------------------------------------------------------------*/
