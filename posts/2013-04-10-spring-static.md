@@ -24,18 +24,26 @@ tags:
 Xml代码  
 
 ```
-<servlet-mapping>       
-	<servlet-name>default</servlet-name>      
-	<url-pattern>*.jpg</url-pattern>     
-</servlet-mapping>    
-<servlet-mapping>           
-	<servlet-name>default</servlet-name>        
-	<url-pattern>*.js</url-pattern>    
-</servlet-mapping>    
-<servlet-mapping>            
-	<servlet-name>default</servlet-name>           
-	<url-pattern>*.css</url-pattern>      
-</servlet-mapping> 
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.jpg</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.png</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.gif</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.js</url-pattern>
+</servlet-mapping>
+<servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>*.css</url-pattern>
+</servlet-mapping>
 ```
 
 要配置多个，每种文件配置一个   
