@@ -5,7 +5,7 @@ description: ''
 date: 2013-05-08
 comments: true
 categories:
-- C/C++ 
+- C
 tags:
 - C/C++ 
 - compiler
