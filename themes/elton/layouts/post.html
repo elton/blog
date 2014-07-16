@@ -1,8 +1,8 @@
 ---
 layout : default
 ---
-<div class="page-intro clearfix">
-    <h1 class="page-title alignleft">{{ page.title }} {{# page.tagline }}
+<div itemscope itemtype="http://schema.org/BlogPosting" class="page-intro clearfix">
+    <h1 itemprop="headline" class="page-title alignleft">{{ page.title }} {{# page.tagline }}
         <small>{{ . }}</small>
         {{/ page.tagline }}
     </h1>
@@ -23,7 +23,7 @@ layout : default
 
 <section class="content full">
     <div class="post">
-        <div class="post-content">
+        <div class="post-content" itemprop="articleBody">
             {{{ content }}}
         </div>
         <div class="clear"></div>
@@ -39,13 +39,13 @@ layout : default
     <div class="sidebox widget">
         <h3>Published</h3>
 
-        <div class="date"><span class="lite1">{{ page.date }}</span></div>
+        <div class="date"><span class="lite1" itemprop="datePublished">{{ page.date }}</span></div>
 
     </div>
 
     <div class="sidebox widget">
         <h3>Categories</h3>
-        <ul class="list">
+        <ul class="list" itemprop="articleSection">
             {{# page.categories?to_categories }}
             {{> categories_list }}
             {{/ page.categories?to_categories }}
@@ -54,7 +54,7 @@ layout : default
 
     <div class="sidebox widget">
         <h3>Tags</h3>
-        <ul class="list">
+        <ul class="list" itemprop="keywords">
             {{# page.tags?to_tags }}
             {{> tags_list }}
             {{/ page.tags?to_tags }}
