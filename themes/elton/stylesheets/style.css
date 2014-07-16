@@ -2,6 +2,12 @@
 html, body {
   background-color: #eee;
 }
+
+.center {
+  text-align: center;
+  margin: 0 auto;
+}
+
 .navbar {
   margin-bottom: 0;
 }
