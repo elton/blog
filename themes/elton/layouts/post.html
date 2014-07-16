@@ -1,8 +1,9 @@
 ---
 layout : default
 ---
-<div itemscope itemtype="http://schema.org/BlogPosting" class="page-intro clearfix">
-    <h1 itemprop="headline" class="page-title alignleft">{{ page.title }} {{# page.tagline }}
+<article itemscope itemtype="http://schema.org/BlogPosting">
+<div class="page-intro clearfix">
+    <h1 class="page-title alignleft" itemprop="headline">{{ page.title }} {{# page.tagline }}
         <small>{{ . }}</small>
         {{/ page.tagline }}
     </h1>
@@ -129,3 +130,4 @@ layout : default
     </div>
 </aside>
 <!-- End Sidebar -->
+</article>
